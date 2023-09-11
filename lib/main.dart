@@ -8,8 +8,11 @@ import 'package:get/get_state_manager/src/rx_flutter/rx_obx_widget.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:sensorify/backend/bluetooth_manager.dart';
+import 'package:sensorify/constants.dart';
 import 'package:sensorify/pages/bluetooth_status_page.dart';
+import 'package:sensorify/theme.dart';
 import 'package:sensorify/widgets/scan_dialog.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'provider/bluetooth_status_provider.dart';
 import 'pages/device_page.dart';
@@ -23,13 +26,14 @@ void main() async {
     Permission.bluetoothConnect,
     Permission.bluetoothScan
   ].request().then((status) {
-    runApp(ChangeNotifierProvider(
-      create: (context) => BluetoothStatusProvider(),
-      child: const Sensorify(),
-    ),);
+    runApp(
+      ChangeNotifierProvider(
+        create: (context) => BluetoothStatusProvider(),
+        child: const Sensorify(),
+      ),
+    );
   });
 }
-
 
 class Sensorify extends StatelessWidget {
   const Sensorify({super.key});
@@ -38,9 +42,9 @@ class Sensorify extends StatelessWidget {
   Widget build(BuildContext context) {
     return GetMaterialApp(
         title: 'Sensorify',
-        theme: ThemeData(
-          primarySwatch: Colors.blue,
-        ),
+        theme: buildLightTheme(),
+        darkTheme: buildDarkTheme(),
+        themeMode: ThemeMode.dark,
         home: const HomePage());
   }
 }
@@ -79,7 +83,7 @@ class _HomePageState extends State<HomePage> {
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: const SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
-        systemNavigationBarColor: Colors.black,
+        systemNavigationBarColor: primaryBackgroundColor,
         systemNavigationBarIconBrightness: Brightness.light,
       ),
       child: Obx(
@@ -93,18 +97,21 @@ class _HomePageState extends State<HomePage> {
                             IconButton(
                               onPressed: () {
                                 showDialog(
-                                  context: context,
-                                  builder: (builder) => AlertDialog(
-                                    title: const Text("Scan Devices"),
-                                    content: ScanDialog(
-                                      width:
-                                      MediaQuery.of(context).size.width - 100,
-                                      height: MediaQuery.of(context).size.height *
-                                          2 /
-                                          3,
-                                    ),
-                                  )
-                                );
+                                    context: context,
+                                    builder: (builder) => AlertDialog(
+                                          title: const Text("Scan Devices"),
+                                          content: ScanDialog(
+                                            width: MediaQuery.of(context)
+                                                    .size
+                                                    .width -
+                                                100,
+                                            height: MediaQuery.of(context)
+                                                    .size
+                                                    .height *
+                                                2 /
+                                                3,
+                                          ),
+                                        ));
                               },
                               icon: const Icon(Icons.watch, color: Colors.red),
                             )

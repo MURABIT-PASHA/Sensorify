@@ -4,3 +4,7 @@ enum SensorType{
   gyroscope,
   magnetometer,
 }
+enum DurationType{
+  ms,
+  s,
+}

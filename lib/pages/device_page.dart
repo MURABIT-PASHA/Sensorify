@@ -69,9 +69,6 @@ class _DevicePageState extends State<DevicePage> {
       width: width,
       height: height,
       alignment: Alignment.center,
-      decoration: const BoxDecoration(
-        color: Colors.white,
-      ),
       child: CustomScrollView(
         slivers: <Widget>[
           SliverAppBar(

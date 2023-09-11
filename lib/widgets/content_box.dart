@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sensorify/constants.dart';
 
 import 'frosted_glass_box.dart';
 
@@ -29,7 +30,7 @@ class ContentBox extends StatelessWidget {
             children: [
               Icon(
                 icon,
-                color: Colors.black,
+                color: buttonTextColor,
                 size: 60,
               ),
               Text(

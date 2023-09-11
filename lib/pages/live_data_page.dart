@@ -81,10 +81,10 @@ class _LiveDataPageState extends State<LiveDataPage> {
                     return Obx(
                       () => ListView(
                         scrollDirection: Axis.vertical,
-                        physics: AlwaysScrollableScrollPhysics(),
+                        physics: const AlwaysScrollableScrollPhysics(),
                         reverse: false,
                         padding:
-                            EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                            const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
                         children: dataList,
                       ),
                     );
