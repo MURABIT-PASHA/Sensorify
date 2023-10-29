@@ -44,8 +44,8 @@ public class MainActivity extends FlutterActivity {
                                     break;
                                 }
                                 case "write":
-                                    HashMap message = call.argument("message");
-                                    result.success(bluetoothManager.writeAsync(message.toString().getBytes(StandardCharsets.UTF_8)));
+                                    String message = call.argument("message");
+                                    result.success(bluetoothManager.writeAsync(message.getBytes(StandardCharsets.UTF_8)));
                                     break;
                                 case "startRead":{
                                     String address = call.argument("address");

@@ -192,7 +192,7 @@ class _RecordSettingsPageState extends State<RecordSettingsPage> {
                   onTap: (){
                     final model = checkParameters();
                     if(model != null){
-                      bluetoothManager.sendMessage(MessageModel(orderType: MessageOrderType.record, content: model));
+                      bluetoothManager.sendMessage(MessageModel(orderType: MessageOrderType.start, settings: model));
                     }
                   },
                     child: FrostedGlassBox(width: width/2, height: 50, child: const Center(child: Text("Start Record"))))

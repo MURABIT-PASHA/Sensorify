@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/services.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
@@ -47,8 +48,8 @@ class BluetoothManager{
   }
 
   Future<bool> sendMessage(MessageModel message) async {
-    print(message.toJson());
-    bool tmp = await methodChannel.invokeMethod("write",{"message": message.toJson()});
+    print(jsonEncode(message.toJson()));
+    bool tmp = await methodChannel.invokeMethod("write",{"message": jsonEncode(message.toJson())});
     return tmp;
   }
   Stream getStream() {

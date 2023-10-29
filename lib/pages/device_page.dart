@@ -58,12 +58,19 @@ class _DevicePageState extends State<DevicePage> {
   @override
   void initState() {
     messageStream.listen((message) {
+      print(message.runtimeType);
       MessageModel model = MessageModel.fromJson(json.decode(message));
       if(model.orderType == MessageOrderType.record){
-        Get.to(const RecordingPage());
+        // Kayıt gelmiştir bunu csv dosyamıza kaydedelim
+      }
+      else if(model.orderType == MessageOrderType.start){
+        final settings = model.settings;
+        if (settings != null){
+          Get.to(()=>RecordingPage(settings: settings));
+        }
       }
       else if(model.orderType == MessageOrderType.stop){
-        //TODO: Devam eden kayıt varsa durdur. Provider kullan
+        // TODO: Devam eden kayıt varsa durdur. Provider kullan
       }
     });
     super.initState();

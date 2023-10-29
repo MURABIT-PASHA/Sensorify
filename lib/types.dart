@@ -9,7 +9,7 @@ enum DurationType{
   s,
 }
 enum MessageOrderType{
+  start, //Kayıt başlatan emirdir
   stop, //Varsa kayıt durduran emirdir
-  record, //Kayıt başlatan emirdir
-
+  record, //Kayıt gönderen emirdir
 }
