@@ -1,6 +1,7 @@
 package com.murabit.akdogan.sensorify;
 import androidx.annotation.NonNull;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.logging.Logger;
 
 import io.flutter.embedding.android.FlutterActivity;
@@ -43,8 +44,8 @@ public class MainActivity extends FlutterActivity {
                                     break;
                                 }
                                 case "write":
-                                    String message = call.argument("message");
-                                    result.success(bluetoothManager.writeAsync(message.getBytes(StandardCharsets.UTF_8)));
+                                    HashMap message = call.argument("message");
+                                    result.success(bluetoothManager.writeAsync(message.toString().getBytes(StandardCharsets.UTF_8)));
                                     break;
                                 case "startRead":{
                                     String address = call.argument("address");

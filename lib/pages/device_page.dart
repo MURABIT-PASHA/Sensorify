@@ -1,12 +1,17 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:sensorify/backend/bluetooth_manager.dart';
+import 'package:sensorify/models/message_model.dart';
+import 'package:sensorify/pages/credit_page.dart';
 import 'package:sensorify/pages/live_data_page.dart';
 import 'package:sensorify/pages/record_settings_page.dart';
 import 'package:sensorify/pages/recording_page.dart';
+import 'package:sensorify/pages/training_page.dart';
+import 'package:sensorify/types.dart';
 import 'package:sensorify/widgets/content_box.dart';
 import 'package:sensorify/widgets/scan_dialog.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -27,8 +32,7 @@ class _DevicePageState extends State<DevicePage> {
   StreamController<String> messageStreamController = StreamController<String>();
   Stream<dynamic> get messageStream => bluetoothManager.getStream();
 
-
-  List<Map<String,dynamic>> gridChildList = [
+  List<Map<String, dynamic>> gridChildList = [
     {
       "name": "Live Data",
       "icon": Icons.multiline_chart,
@@ -40,21 +44,31 @@ class _DevicePageState extends State<DevicePage> {
       "onTapPage": RecordSettingsPage(),
     },
     {
+      "name": "Training",
+      "icon": Icons.cast_for_education,
+      "onTapPage": TrainingPage(),
+    },
+    {
       "name": "Credit",
       "icon": Icons.person,
-      "onTapPage": RecordSettingsPage(),
+      "onTapPage": CreditPage(),
     },
   ];
 
   @override
   void initState() {
     messageStream.listen((message) {
-      if (message == "record") {
-       Get.to(const RecordingPage());
+      MessageModel model = MessageModel.fromJson(json.decode(message));
+      if(model.orderType == MessageOrderType.record){
+        Get.to(const RecordingPage());
+      }
+      else if(model.orderType == MessageOrderType.stop){
+        //TODO: Devam eden kayıt varsa durdur. Provider kullan
       }
     });
     super.initState();
   }
+
   @override
   void dispose() {
     messageStreamController.close();
@@ -111,12 +125,13 @@ class _DevicePageState extends State<DevicePage> {
             delegate: SliverChildBuilderDelegate(
               (BuildContext context, int index) {
                 return ContentBox(
-                    width: width / 2 - 10,
-                    name: gridChildList[index]["name"],
-                    icon: gridChildList[index]["icon"],
-                    onTap: () async {
-                        Get.to(gridChildList[index]["onTapPage"]);
-                                  });
+                  width: width / 2 - 10,
+                  name: gridChildList[index]["name"],
+                  icon: gridChildList[index]["icon"],
+                  onTap: () async {
+                    Get.to(gridChildList[index]["onTapPage"]);
+                  },
+                );
               },
               childCount: gridChildList.length,
             ),

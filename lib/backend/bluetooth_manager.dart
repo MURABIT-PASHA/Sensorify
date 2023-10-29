@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/services.dart';
 import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
+import 'package:sensorify/models/message_model.dart';
 
 class BluetoothManager{
   static MethodChannel methodChannel = const MethodChannel("com.sensorify/bluetooth");
@@ -45,8 +46,9 @@ class BluetoothManager{
     return tmp;
   }
 
-  Future<bool> sendMessage(String message) async {
-    bool tmp = await methodChannel.invokeMethod("write",{"message": message});
+  Future<bool> sendMessage(MessageModel message) async {
+    print(message.toJson());
+    bool tmp = await methodChannel.invokeMethod("write",{"message": message.toJson()});
     return tmp;
   }
   Stream getStream() {

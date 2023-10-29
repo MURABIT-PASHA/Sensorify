@@ -3,6 +3,8 @@ import 'package:flutter_svg/svg.dart';
 import 'package:get/get_rx/src/rx_types/rx_types.dart';
 import 'package:get/get_state_manager/src/rx_flutter/rx_obx_widget.dart';
 import 'package:sensorify/backend/bluetooth_manager.dart';
+import 'package:sensorify/models/message_model.dart';
+import 'package:sensorify/models/settings_model.dart';
 import 'package:sensorify/types.dart';
 
 import '../widgets/frosted_glass_box.dart';
@@ -16,7 +18,7 @@ class RecordSettingsPage extends StatefulWidget {
 
 class _RecordSettingsPageState extends State<RecordSettingsPage> {
   BluetoothManager bluetoothManager = BluetoothManager();
-  late List<bool> iconStatus;
+  Map<SensorType, bool> selectedSensors = {};
   int _durationDelay = 0;
   final Rx<DurationType> _durationType = DurationType.ms.obs;
   final TextEditingController _delayController = TextEditingController();
@@ -36,12 +38,30 @@ class _RecordSettingsPageState extends State<RecordSettingsPage> {
 
   @override
   void initState() {
-    iconStatus = List.filled(SensorType.values.length, false);
+    for(var type in SensorType.values){
+      selectedSensors[type] = false;
+    }
     super.initState();
   }
 
-  void checkParameters() async{
+  SettingsModel? checkParameters(){
+    if(_durationDelay!=0){
+      int falseCount = 0;
 
+      selectedSensors.forEach((key, value) {
+        if (value == false) {
+          falseCount++;
+        }
+      });
+      if(falseCount>0){
+        final SettingsModel finalSettings = SettingsModel(
+            durationDelay: _durationDelay,
+            durationType: _durationType.value,
+            selectedSensors: selectedSensors);
+        return finalSettings;
+      }
+    }
+    return null;
   }
 
   @override
@@ -67,15 +87,21 @@ class _RecordSettingsPageState extends State<RecordSettingsPage> {
                   child: ListTile(
                     leading: Icon(
                       Icons.save,
-                      color: iconStatus[index] ? Colors.green : Colors.red,
+                      color: selectedSensors[SensorType.values[index]]! ? Colors.green : Colors.red,
                     ),
                     title: Text(
                       SensorType.values[index].name.toUpperCase(),
                       style: const TextStyle(color: Colors.white),
                     ),
+                    trailing: Container(
+                      padding: const EdgeInsets.only(top: 5, bottom: 10),
+                      height: 50,
+                      width: 50,
+                      child: SensorType.values[index].name == SensorType.accelerometer.name?accelerometerIcon:SensorType.values[index].name == SensorType.magnetometer.name?magnetometerIcon:gyroscopeIcon,
+                    ),
                     onTap: () {
                       setState(() {
-                        iconStatus[index] = !iconStatus[index];
+                        selectedSensors[SensorType.values[index]] = !(selectedSensors[SensorType.values[index]]??false);
                       });
                     },
                   ),
@@ -125,7 +151,7 @@ class _RecordSettingsPageState extends State<RecordSettingsPage> {
                             keyboardType: TextInputType.number,
                           ),
                         ),
-                        Container(
+                        SizedBox(
                           width: 70,
                           child: Obx(()=>
                             DropdownButtonHideUnderline(
@@ -164,9 +190,12 @@ class _RecordSettingsPageState extends State<RecordSettingsPage> {
                 ),
                 InkWell(
                   onTap: (){
-                    checkParameters();
+                    final model = checkParameters();
+                    if(model != null){
+                      bluetoothManager.sendMessage(MessageModel(orderType: MessageOrderType.record, content: model));
+                    }
                   },
-                    child: FrostedGlassBox(width: width/2, height: 50, child: Center(child: Text("Start Record"))))
+                    child: FrostedGlassBox(width: width/2, height: 50, child: const Center(child: Text("Start Record"))))
 
               ],
             ),

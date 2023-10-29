@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:get/get_navigation/src/root/get_material_app.dart';
 import 'package:get/get_rx/src/rx_types/rx_types.dart';
 import 'package:get/get_state_manager/src/rx_flutter/rx_obx_widget.dart';
@@ -12,13 +13,13 @@ import 'package:sensorify/constants.dart';
 import 'package:sensorify/pages/bluetooth_status_page.dart';
 import 'package:sensorify/theme.dart';
 import 'package:sensorify/widgets/scan_dialog.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import 'provider/bluetooth_status_provider.dart';
 import 'pages/device_page.dart';
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+  WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+  FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
   [
     Permission.location,
     Permission.storage,
@@ -27,6 +28,7 @@ void main() async {
     Permission.bluetoothScan
   ].request().then((status) {
     runApp(
+      //TODO: Multiple provider eklemeyi unutma order status içinde eklemen gerekiyor
       ChangeNotifierProvider(
         create: (context) => BluetoothStatusProvider(),
         child: const Sensorify(),
@@ -74,12 +76,14 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     startCheck();
+    FlutterNativeSplash.remove();
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    final bluetoothStatus = Provider.of<BluetoothStatusProvider>(context);
+    final bluetoothStatus =
+        Provider.of<BluetoothStatusProvider>(context, listen: true);
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: const SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
@@ -97,21 +101,19 @@ class _HomePageState extends State<HomePage> {
                             IconButton(
                               onPressed: () {
                                 showDialog(
-                                    context: context,
-                                    builder: (builder) => AlertDialog(
-                                          title: const Text("Scan Devices"),
-                                          content: ScanDialog(
-                                            width: MediaQuery.of(context)
-                                                    .size
-                                                    .width -
-                                                100,
-                                            height: MediaQuery.of(context)
-                                                    .size
-                                                    .height *
-                                                2 /
-                                                3,
-                                          ),
-                                        ));
+                                  context: context,
+                                  builder: (builder) => AlertDialog(
+                                    title: const Text("Scan Devices"),
+                                    content: ScanDialog(
+                                      width: MediaQuery.of(context).size.width -
+                                          100,
+                                      height:
+                                          MediaQuery.of(context).size.height *
+                                              2 /
+                                              3,
+                                    ),
+                                  ),
+                                );
                               },
                               icon: const Icon(Icons.watch, color: Colors.red),
                             )
