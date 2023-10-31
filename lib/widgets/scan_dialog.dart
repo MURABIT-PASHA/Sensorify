@@ -4,8 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:sensorify/backend/bluetooth_manager.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:get/get.dart';
-
-import '../provider/bluetooth_status_provider.dart';
+import '../provider/device_status_provider.dart';
 
 class ScanDialog extends StatefulWidget {
   final double width;
@@ -53,7 +52,7 @@ class _ScanDialogState extends State<ScanDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final bluetoothStatus = Provider.of<BluetoothStatusProvider>(context);
+    final deviceStatus = Provider.of<DeviceStatusProvider>(context);
     final contextHeight = widget.height;
     final contextWidth = widget.width;
 
@@ -95,8 +94,9 @@ class _ScanDialogState extends State<ScanDialog> {
                           await bluetoothManager
                               .connectToBluetoothDevice(address);
                           _registerDeviceAddress(address).then((value) {
+                            deviceStatus.updateRegistrationStatus(value);
                             Get.back();
-                            bluetoothStatus.updateConnectionStatus(value);
+                            deviceStatus.updateConnectionStatus(value);
                           });
                         },
                       );

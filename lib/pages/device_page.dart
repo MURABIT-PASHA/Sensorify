@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
+import 'package:provider/provider.dart';
 import 'package:sensorify/backend/bluetooth_manager.dart';
 import 'package:sensorify/models/message_model.dart';
 import 'package:sensorify/pages/credit_page.dart';
@@ -11,6 +12,7 @@ import 'package:sensorify/pages/live_data_page.dart';
 import 'package:sensorify/pages/record_settings_page.dart';
 import 'package:sensorify/pages/recording_page.dart';
 import 'package:sensorify/pages/training_page.dart';
+import 'package:sensorify/provider/device_status_provider.dart';
 import 'package:sensorify/types.dart';
 import 'package:sensorify/widgets/content_box.dart';
 import 'package:sensorify/widgets/scan_dialog.dart';
@@ -27,8 +29,6 @@ class DevicePage extends StatefulWidget {
 
 class _DevicePageState extends State<DevicePage> {
   BluetoothManager bluetoothManager = BluetoothManager();
-  final Rx<bool> _isDeviceRegistered = false.obs;
-  final Rx<bool> _isConnected = false.obs;
   StreamController<String> messageStreamController = StreamController<String>();
   Stream<dynamic> get messageStream => bluetoothManager.getStream();
 
@@ -60,16 +60,14 @@ class _DevicePageState extends State<DevicePage> {
     messageStream.listen((message) {
       print(message.runtimeType);
       MessageModel model = MessageModel.fromJson(json.decode(message));
-      if(model.orderType == MessageOrderType.record){
+      if (model.orderType == MessageOrderType.record) {
         // Kayıt gelmiştir bunu csv dosyamıza kaydedelim
-      }
-      else if(model.orderType == MessageOrderType.start){
+      } else if (model.orderType == MessageOrderType.start) {
         final settings = model.settings;
-        if (settings != null){
-          Get.to(()=>RecordingPage(settings: settings));
+        if (settings != null) {
+          Get.to(() => RecordingPage(settings: settings));
         }
-      }
-      else if(model.orderType == MessageOrderType.stop){
+      } else if (model.orderType == MessageOrderType.stop) {
         // TODO: Devam eden kayıt varsa durdur. Provider kullan
       }
     });
@@ -84,6 +82,7 @@ class _DevicePageState extends State<DevicePage> {
 
   @override
   Widget build(BuildContext context) {
+    final provider = Provider.of<DeviceStatusProvider>(context, listen: true);
     double width = MediaQuery.of(context).size.width;
     double height = MediaQuery.of(context).size.height;
     return Container(
@@ -101,21 +100,32 @@ class _DevicePageState extends State<DevicePage> {
             collapsedHeight: 60,
             title: const Text("Sensorify"),
             actions: [
-              Obx(
-                () => IconButton(
-                    onPressed: () async {
-                      if (_isDeviceRegistered.value == false) {
-                        Get.defaultDialog(
-                            title: 'Select your device',
-                            content: ScanDialog(
-                                height: height / 3 * 2, width: width - 100));
+              IconButton(
+                onPressed: () async {
+                  if (provider.isDeviceRegistered == false) {
+                    Get.defaultDialog(
+                        title: 'Select your device',
+                        content: ScanDialog(
+                            height: height / 3 * 2, width: width - 100));
+                  } else {
+                    final prefs = await SharedPreferences.getInstance();
+                    if (prefs.getBool("isDeviceExist") ?? false) {
+                      final address =
+                          prefs.getString("deviceAddress") ?? "NULL";
+                      if (address != "NULL") {
+                        if (await bluetoothManager
+                            .connectToBluetoothDevice(address)) {
+                          provider.updateConnectionStatus(true);
+                        }
                       }
-                    },
-                    icon: Icon(
-                      Icons.watch,
-                      color: _isConnected.value ? Colors.green : Colors.red,
-                    )),
-              )
+                    }
+                  }
+                },
+                icon: Icon(
+                  Icons.watch,
+                  color: provider.isDeviceConnected ? Colors.green : Colors.red,
+                ),
+              ),
             ],
             flexibleSpace: FlexibleSpaceBar(
               background: Container(

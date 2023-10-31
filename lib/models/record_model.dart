@@ -1,6 +1,5 @@
 class RecordModel {
-  bool? isFirst;
-  bool? isLast;
+  final String initialName;
   final String sensorName;
   final double axisX;
   final double axisY;
@@ -8,20 +7,17 @@ class RecordModel {
   final int timestamp;
 
   RecordModel({
+    required this.initialName,
     required this.sensorName,
     required this.axisX,
     required this.axisY,
     required this.axisZ,
     required this.timestamp,
-    this.isFirst,
-    this.isLast,
   });
-
 
   Map<String, dynamic> toJson() {
     return {
-      "isFirst": isFirst,
-      "isLast": isLast,
+      "initialName": initialName,
       "sensorName": sensorName,
       "axisX": axisX,
       "axisY": axisY,
@@ -32,8 +28,7 @@ class RecordModel {
 
   factory RecordModel.fromJson(Map<String, dynamic> json) {
     return RecordModel(
-      isFirst: json["isFirst"],
-      isLast: json["isLast"],
+      initialName: json["initialName"],
       sensorName: json["sensorName"],
       axisX: json["axisX"].toDouble(),
       axisY: json["axisY"].toDouble(),

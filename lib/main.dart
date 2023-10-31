@@ -11,10 +11,10 @@ import 'package:provider/provider.dart';
 import 'package:sensorify/backend/bluetooth_manager.dart';
 import 'package:sensorify/constants.dart';
 import 'package:sensorify/pages/bluetooth_status_page.dart';
+import 'package:sensorify/provider/device_status_provider.dart';
+import 'package:sensorify/provider/order_status_provider.dart';
 import 'package:sensorify/theme.dart';
 import 'package:sensorify/widgets/scan_dialog.dart';
-
-import 'provider/bluetooth_status_provider.dart';
 import 'pages/device_page.dart';
 
 void main() async {
@@ -27,13 +27,7 @@ void main() async {
     Permission.bluetoothConnect,
     Permission.bluetoothScan
   ].request().then((status) {
-    runApp(
-      //TODO: Multiple provider eklemeyi unutma order status içinde eklemen gerekiyor
-      ChangeNotifierProvider(
-        create: (context) => BluetoothStatusProvider(),
-        child: const Sensorify(),
-      ),
-    );
+    runApp(const Sensorify());
   });
 }
 
@@ -42,12 +36,18 @@ class Sensorify extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GetMaterialApp(
-        title: 'Sensorify',
-        theme: buildLightTheme(),
-        darkTheme: buildDarkTheme(),
-        themeMode: ThemeMode.dark,
-        home: const HomePage());
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (context) => DeviceStatusProvider()),
+        ChangeNotifierProvider(create: (context) => OrderStatusProvider()),
+      ],
+      child: GetMaterialApp(
+          title: 'Sensorify',
+          theme: buildLightTheme(),
+          darkTheme: buildDarkTheme(),
+          themeMode: ThemeMode.dark,
+          home: const HomePage()),
+    );
   }
 }
 
@@ -83,7 +83,7 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     final bluetoothStatus =
-        Provider.of<BluetoothStatusProvider>(context, listen: true);
+        Provider.of<DeviceStatusProvider>(context, listen: true);
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: const SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
