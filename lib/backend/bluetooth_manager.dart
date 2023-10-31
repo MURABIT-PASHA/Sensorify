@@ -48,7 +48,6 @@ class BluetoothManager{
   }
 
   Future<bool> sendMessage(MessageModel message) async {
-    print(jsonEncode(message.toJson()));
     bool tmp = await methodChannel.invokeMethod("write",{"message": jsonEncode(message.toJson())});
     return tmp;
   }

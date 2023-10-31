@@ -18,6 +18,7 @@ import 'package:sensorify/widgets/content_box.dart';
 import 'package:sensorify/widgets/scan_dialog.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../backend/file_manager.dart';
 import 'live_data_settings_page.dart';
 
 class DevicePage extends StatefulWidget {
@@ -31,6 +32,7 @@ class _DevicePageState extends State<DevicePage> {
   BluetoothManager bluetoothManager = BluetoothManager();
   StreamController<String> messageStreamController = StreamController<String>();
   Stream<dynamic> get messageStream => bluetoothManager.getStream();
+  FileManager fileManager = FileManager();
 
   List<Map<String, dynamic>> gridChildList = [
     {
@@ -58,17 +60,19 @@ class _DevicePageState extends State<DevicePage> {
   @override
   void initState() {
     messageStream.listen((message) {
-      print(message.runtimeType);
       MessageModel model = MessageModel.fromJson(json.decode(message));
       if (model.orderType == MessageOrderType.record) {
-        // Kayıt gelmiştir bunu csv dosyamıza kaydedelim
+        final record = model.record;
+        if(record != null) {
+          fileManager.saveRecord(record).then((value) => print(value));
+        }
       } else if (model.orderType == MessageOrderType.start) {
         final settings = model.settings;
         if (settings != null) {
           Get.to(() => RecordingPage(settings: settings));
         }
       } else if (model.orderType == MessageOrderType.stop) {
-        // TODO: Devam eden kayıt varsa durdur. Provider kullan
+        fileManager.saveFileToDownloadsDirectory();
       }
     });
     super.initState();

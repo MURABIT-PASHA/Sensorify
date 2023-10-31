@@ -50,4 +50,26 @@ class FileManager {
     }
     return true;
   }
+
+  Future saveFileToDownloadsDirectory()async{
+      Directory directory = await getApplicationDocumentsDirectory();
+      List<FileSystemEntity> files = directory.listSync();
+      for (FileSystemEntity file in files) {
+        if (file is File) {
+          print(file.path);
+          // file.copy(newPath)
+          // file.deleteSync();
+        }
+      }
+    //
+    // final filePath = '${await _storagePath}/Sensorify/${fileRef.name}';
+    //
+    // File writtenFile = File(filePath);
+    // if(await writtenFile.exists()){
+    // await fileRef.writeToFile(writtenFile);
+    // }else{
+    // await writtenFile.create(recursive: true);
+    // await fileRef.writeToFile(writtenFile);
+    // }
+  }
 }

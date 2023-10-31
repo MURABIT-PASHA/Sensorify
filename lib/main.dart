@@ -90,20 +90,22 @@ class _HomePageState extends State<HomePage> {
         systemNavigationBarColor: primaryBackgroundColor,
         systemNavigationBarIconBrightness: Brightness.light,
       ),
-      child: Obx(
-        () => Scaffold(
-            appBar: !bluetoothStatus.isDeviceConnected
-                ? AppBar(
-                    centerTitle: true,
-                    title: const Text("Sensorify"),
-                    actions: isBluetoothAvailable.value
-                        ? [
-                            IconButton(
-                              onPressed: () async {
-                                if (bluetoothStatus.isDeviceRegistered) {
-                                  await bluetoothManager
-                                      .connectToBluetoothDevice(bluetoothStatus.deviceAddress);
-                                } else {
+      child: Obx(() {
+        bluetoothStatus.checkRegistration();
+        return Scaffold(
+          appBar: !bluetoothStatus.isDeviceConnected
+              ? AppBar(
+                  centerTitle: true,
+                  title: const Text("Sensorify"),
+                  actions: isBluetoothAvailable.value
+                      ? [
+                          IconButton(
+                            onPressed: () async {
+                              if (bluetoothStatus.isDeviceRegistered) {
+                                bluetoothManager.connectToBluetoothDevice(
+                                    bluetoothStatus.deviceAddress).then((value) => bluetoothStatus.updateConnectionStatus(true));
+                              } else {
+                                if (mounted) {
                                   showDialog(
                                     context: context,
                                     builder: (builder) => AlertDialog(
@@ -120,21 +122,26 @@ class _HomePageState extends State<HomePage> {
                                     ),
                                   );
                                 }
-                              },
-                              icon: const Icon(Icons.watch, color: Colors.red),
-                            )
-                          ]
-                        : null,
-                  )
-                : null,
-            body: isBluetoothAvailable.value
-                ? bluetoothStatus.isDeviceConnected
-                    ? const DevicePage()
-                    : const Center(
-                        child: Text("Hiçbir cihaz bağlı değil"),
-                      )
-                : const BluetoothStatusPage()),
-      ),
+                              }
+                            },
+                            icon: Icon(Icons.watch,
+                                color: bluetoothStatus.isDeviceConnected
+                                    ? Colors.green
+                                    : Colors.red),
+                          )
+                        ]
+                      : null,
+                )
+              : null,
+          body: isBluetoothAvailable.value
+              ? bluetoothStatus.isDeviceConnected
+                  ? const DevicePage()
+                  : const Center(
+                      child: Text("Hiçbir cihaz bağlı değil"),
+                    )
+              : const BluetoothStatusPage(),
+        );
+      }),
     );
   }
 }
