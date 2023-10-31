@@ -19,13 +19,6 @@ class ScanDialog extends StatefulWidget {
 class _ScanDialogState extends State<ScanDialog> {
   BluetoothManager bluetoothManager = BluetoothManager();
 
-  Future<bool> _registerDeviceAddress(String address) async {
-    final prefs = await SharedPreferences.getInstance();
-    prefs.setBool("isDeviceExist", true);
-    prefs.setString("deviceAddress", address);
-    return true;
-  }
-
   Future<List<Map<String, String>>> getScanResult() async {
     List<dynamic> dynamicData = await bluetoothManager.getData();
     List<Map<String, String>> scanResults = dynamicData.map((dynamic element) {
@@ -46,7 +39,6 @@ class _ScanDialogState extends State<ScanDialog> {
 
   @override
   void initState() {
-    getScanResult();
     super.initState();
   }
 
@@ -93,8 +85,7 @@ class _ScanDialogState extends State<ScanDialog> {
                         onTap: () async {
                           await bluetoothManager
                               .connectToBluetoothDevice(address);
-                          _registerDeviceAddress(address).then((value) {
-                            deviceStatus.updateRegistrationStatus(value);
+                          deviceStatus.registerDeviceAddress(address).then((value) {
                             Get.back();
                             deviceStatus.updateConnectionStatus(value);
                           });

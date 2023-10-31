@@ -3,9 +3,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:get/get_rx/src/rx_types/rx_types.dart';
 import 'package:get/get_state_manager/src/rx_flutter/rx_obx_widget.dart';
+import 'package:rxdart/rxdart.dart';
 import 'package:sensorify/constants.dart';
 import 'package:sensorify/models/settings_model.dart';
-import 'package:sensorify/models/stream_extension.dart';
 import 'package:sensorify/types.dart';
 
 import '../backend/sensor_manager.dart';
@@ -21,10 +21,10 @@ class RecordingPage extends StatefulWidget {
 class _RecordingPageState extends State<RecordingPage> {
   late int initialTimestamp;
   late Timer _timer;
-  late Timer _recordTimer;
   final RxInt _seconds = 0.obs;
   SensorManager sensorManager = SensorManager();
   List<Stream> streamData = [];
+  StreamSubscription? subscription;
 
   Stream<dynamic> startStreamData(SensorType type) {
     switch (type) {
@@ -37,18 +37,20 @@ class _RecordingPageState extends State<RecordingPage> {
     }
   }
 
-  void sendData() {
-    for (Stream stream in streamData) {
-      stream.throttle(Duration(seconds: 3)).listen((data){
-        print(data);
-      });
-    }
+  void sendData(Duration duration) {
+    Stream combinedStream = MergeStream(streamData);
+    subscription =
+        combinedStream.throttle((event) => TimerStream(true, duration))
+            .listen((data) {
+              print(data);
+              print(data.runtimeType);
+        });
   }
+
 
   @override
   void initState() {
     initialTimestamp = DateTime.now().millisecondsSinceEpoch;
-    super.initState();
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       _seconds.value++;
     });
@@ -58,22 +60,19 @@ class _RecordingPageState extends State<RecordingPage> {
       }
     });
     if (widget.settings.durationType.name == "ms") {
-      _recordTimer = Timer.periodic(
-          Duration(milliseconds: widget.settings.durationDelay), (timer) {
-        sendData();
-      });
+      sendData(Duration(milliseconds: widget.settings.durationDelay));
     } else {
-      _recordTimer = Timer.periodic(
-          Duration(milliseconds: widget.settings.durationDelay), (timer) {
-        sendData();
-      });
+      sendData(Duration(seconds: widget.settings.durationDelay));
     }
+    super.initState();
   }
 
   @override
   void dispose() {
     _timer.cancel();
-    _recordTimer.cancel();
+    if(subscription!=null){
+      subscription!.cancel();
+    }
     super.dispose();
   }
 

@@ -1,7 +1,7 @@
 import 'dart:async';
 
 extension StreamExtensions<T> on Stream<T> {
-  Stream<T> throttle(Duration duration) {
+  Stream<T> waitress(Duration duration) {
     Timer? throttleTimer;
     StreamController<T> resultStreamController = StreamController<T>();
 

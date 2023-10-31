@@ -99,21 +99,27 @@ class _HomePageState extends State<HomePage> {
                     actions: isBluetoothAvailable.value
                         ? [
                             IconButton(
-                              onPressed: () {
-                                showDialog(
-                                  context: context,
-                                  builder: (builder) => AlertDialog(
-                                    title: const Text("Scan Devices"),
-                                    content: ScanDialog(
-                                      width: MediaQuery.of(context).size.width -
-                                          100,
-                                      height:
-                                          MediaQuery.of(context).size.height *
-                                              2 /
-                                              3,
+                              onPressed: () async {
+                                if (bluetoothStatus.isDeviceRegistered) {
+                                  await bluetoothManager
+                                      .connectToBluetoothDevice(bluetoothStatus.deviceAddress);
+                                } else {
+                                  showDialog(
+                                    context: context,
+                                    builder: (builder) => AlertDialog(
+                                      title: const Text("Scan Devices"),
+                                      content: ScanDialog(
+                                        width:
+                                            MediaQuery.of(context).size.width -
+                                                100,
+                                        height:
+                                            MediaQuery.of(context).size.height *
+                                                2 /
+                                                3,
+                                      ),
                                     ),
-                                  ),
-                                );
+                                  );
+                                }
                               },
                               icon: const Icon(Icons.watch, color: Colors.red),
                             )
