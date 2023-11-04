@@ -56,20 +56,24 @@ class FileManager {
       List<FileSystemEntity> files = directory.listSync();
       for (FileSystemEntity file in files) {
         if (file is File) {
-          print(file.path);
-          // file.copy(newPath)
-          // file.deleteSync();
+          if(file.path.contains(".csv")){
+            final fileName = file.path.split("/").last;
+            final filePath = '${await _storagePath}/Sensorify/$fileName';
+            File writtenFile = File(filePath);
+            if(!await writtenFile.exists()){
+              try{
+                await writtenFile.create(recursive: true);
+              }
+              catch(e){
+                if(e is FileSystemException){
+                  return false;
+                }
+              }
+            }
+            file.copy(filePath);
+            file.deleteSync();
+          }
         }
       }
-    //
-    // final filePath = '${await _storagePath}/Sensorify/${fileRef.name}';
-    //
-    // File writtenFile = File(filePath);
-    // if(await writtenFile.exists()){
-    // await fileRef.writeToFile(writtenFile);
-    // }else{
-    // await writtenFile.create(recursive: true);
-    // await fileRef.writeToFile(writtenFile);
-    // }
   }
 }

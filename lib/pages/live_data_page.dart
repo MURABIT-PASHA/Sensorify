@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:get/get_rx/src/rx_types/rx_types.dart';
 import 'package:get/get_state_manager/src/rx_flutter/rx_obx_widget.dart';
 import 'package:real_time_chart/real_time_chart.dart';
+import 'package:sensorify/backend/bluetooth_manager.dart';
 import 'package:sensorify/backend/sensor_manager.dart';
+import 'package:sensorify/models/message_model.dart';
+import 'package:sensorify/models/settings_model.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 
 import '../types.dart';
@@ -17,16 +20,18 @@ class LiveDataPage extends StatefulWidget {
 
 class _LiveDataPageState extends State<LiveDataPage> {
   RxList<Container> dataList = RxList<Container>([]);
-  final List<Color> _colorList = [
-    Colors.green,
-    Colors.blue,
-    Colors.red,
-    Colors.orange
-  ];
-  SensorManager sensorManager = SensorManager();
+  BluetoothManager bluetoothManager = BluetoothManager();
   @override
   void initState() {
-    //TODO: Send 'startStream' message to watch
+    bluetoothManager.sendMessage(
+      MessageModel(
+        orderType: MessageOrderType.watch,
+        settings: SettingsModel(
+            durationDelay: 500,
+            durationType: DurationType.ms,
+            selectedSensors: {widget.type: true}),
+      ),
+    );
     super.initState();
   }
 
@@ -34,17 +39,6 @@ class _LiveDataPageState extends State<LiveDataPage> {
   void dispose() {
     //TODO: Send 'stopStream' message to watch
     super.dispose();
-  }
-
-  Stream<dynamic> startStreamData() {
-    switch (widget.type) {
-      case SensorType.accelerometer:
-        return sensorManager.accelerometerEventListener();
-      case SensorType.gyroscope:
-        return sensorManager.gyroscopeEventListener();
-      case SensorType.magnetometer:
-        return sensorManager.magnetometerEventListener();
-    }
   }
 
   @override
@@ -83,8 +77,8 @@ class _LiveDataPageState extends State<LiveDataPage> {
                         scrollDirection: Axis.vertical,
                         physics: const AlwaysScrollableScrollPhysics(),
                         reverse: false,
-                        padding:
-                            const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 10),
                         children: dataList,
                       ),
                     );

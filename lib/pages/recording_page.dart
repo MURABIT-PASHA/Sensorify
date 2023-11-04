@@ -118,24 +118,23 @@ class _RecordingPageState extends State<RecordingPage> {
   @override
   Widget build(BuildContext context) {
     double width = MediaQuery.of(context).size.width;
-    return Container(
-      color: primaryBackgroundColor,
-      child: Center(
-        child: InkWell(
-          onTap: (){
-            bluetoothManager.sendMessage(MessageModel(orderType: MessageOrderType.stop));
-            Get.back(canPop: false);
-          },
-          child: Container(
-            width: width / 2,
-            height: width / 2,
-            decoration: const BoxDecoration(
-              color: buttonColor,
-              shape: BoxShape.circle,
-            ),
-            child: Center(
-              child: SizedBox(
-                width: width/2,
+    return Scaffold(
+      body: Container(
+        color: primaryBackgroundColor,
+        child: Center(
+          child: InkWell(
+            onTap: (){
+              bluetoothManager.sendMessage(MessageModel(orderType: MessageOrderType.stop));
+              Get.back(canPop: false);
+            },
+            child: Container(
+              width: width / 2,
+              height: width / 2,
+              decoration: const BoxDecoration(
+                color: buttonColor,
+                shape: BoxShape.circle,
+              ),
+              child: Center(
                 child: Obx(
                   () => Text(
                     timerString,

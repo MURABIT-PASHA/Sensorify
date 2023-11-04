@@ -20,15 +20,7 @@ import 'pages/device_page.dart';
 void main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
-  [
-    Permission.location,
-    Permission.storage,
-    Permission.bluetooth,
-    Permission.bluetoothConnect,
-    Permission.bluetoothScan
-  ].request().then((status) {
-    runApp(const Sensorify());
-  });
+  runApp(const Sensorify());
 }
 
 class Sensorify extends StatelessWidget {
@@ -75,7 +67,13 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void initState() {
-    startCheck();
+    [
+      Permission.location,
+      Permission.storage,
+      Permission.bluetooth,
+      Permission.bluetoothConnect,
+      Permission.bluetoothScan
+    ].request().then((value) => startCheck());
     FlutterNativeSplash.remove();
     super.initState();
   }
@@ -102,8 +100,11 @@ class _HomePageState extends State<HomePage> {
                           IconButton(
                             onPressed: () async {
                               if (bluetoothStatus.isDeviceRegistered) {
-                                bluetoothManager.connectToBluetoothDevice(
-                                    bluetoothStatus.deviceAddress).then((value) => bluetoothStatus.updateConnectionStatus(true));
+                                bluetoothManager
+                                    .connectToBluetoothDevice(
+                                        bluetoothStatus.deviceAddress)
+                                    .then((value) => bluetoothStatus
+                                        .updateConnectionStatus(true));
                               } else {
                                 if (mounted) {
                                   showDialog(

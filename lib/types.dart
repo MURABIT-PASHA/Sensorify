@@ -12,4 +12,5 @@ enum MessageOrderType{
   start, //Kayıt başlatan emirdir
   stop, //Varsa kayıt durduran emirdir
   record, //Kayıt gönderen emirdir
+  watch, //İzleme isteği gönderen emirdir
 }

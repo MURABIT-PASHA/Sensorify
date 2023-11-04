@@ -73,6 +73,12 @@ class _DevicePageState extends State<DevicePage> {
         }
       } else if (model.orderType == MessageOrderType.stop) {
         fileManager.saveFileToDownloadsDirectory();
+      } else if(model.orderType == MessageOrderType.watch){
+        //TODO: Sadece izleme isteği gelmiştir ayarları alıp. İlgili
+        //sensorler başlatılacak. Daha sonra bir response yazılacak
+        //responsun adı belli değil daha. Hatta tüm bu yapıyı switch
+        //case olarak tanımlamalıyız. Bu messageOrderType ise önce response
+        //mu yoksa request mi olduğuna göre ayıklanmalı.
       }
     });
     super.initState();
