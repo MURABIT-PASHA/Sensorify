@@ -21,9 +21,9 @@ class _LiveDataPageState extends State<LiveDataPage> {
   Stream<dynamic> get messageStream => bluetoothManager.getStream();
   final StreamController<dynamic> _bluetoothStreamController =
       StreamController<dynamic>();
-  StreamController<double> _axisXStreamController = StreamController<double>();
-  StreamController<double> _axisYStreamController = StreamController<double>();
-  StreamController<double> _axisZStreamController = StreamController<double>();
+  final StreamController<double> _axisXStreamController = StreamController<double>();
+  final StreamController<double> _axisYStreamController = StreamController<double>();
+  final StreamController<double> _axisZStreamController = StreamController<double>();
   final double growth = 5;
 
   void startBluetoothListening() {
@@ -84,7 +84,6 @@ class _LiveDataPageState extends State<LiveDataPage> {
                 stream: _bluetoothStreamController.stream,
                 builder: (context, snapshot) {
                   if (snapshot.hasData) {
-                    var record = snapshot.data;
                     List<Color> graphColors = [
                       xAxisColor,
                       yAxisColor,

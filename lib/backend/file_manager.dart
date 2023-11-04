@@ -52,7 +52,6 @@ class FileManager {
   }
 
   Future<bool> saveFileToDownloadsDirectory()async{
-    print("LEYleyley");
       Directory directory = await getApplicationDocumentsDirectory();
       List<FileSystemEntity> files = directory.listSync();
       for (FileSystemEntity file in files) {
@@ -67,6 +66,7 @@ class FileManager {
               }
               catch(e){
                 if(e is FileSystemException){
+                  print(e);
                   return false;
                 }
               }

@@ -74,7 +74,6 @@ class SensorManager {
     _subscription = combinedStream
         .throttle((event) => TimerStream(true, duration))
         .listen((data) {
-          print("Data");
       final currentTime = DateTime.now().millisecondsSinceEpoch;
       if (data is AccelerometerEvent) {
         final sensorData = RecordModel(

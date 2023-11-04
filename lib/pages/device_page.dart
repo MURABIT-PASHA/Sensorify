@@ -70,11 +70,12 @@ class _DevicePageState extends State<DevicePage> {
           }
           break;
         case MessageOrderType.stop:
-          print("kdjsfkldlkfjlk");
           sensorManager.cancelSubscription();
           fileManager.saveFileToDownloadsDirectory().then((value) {
             if (value) {
-              Get.snackbar("x", "xxxxxxxxxxx");
+              Get.snackbar("Başarılı", "Kayıtlar indirildi");
+            }else{
+              Get.snackbar("Hata", "Kayıt izni bulunamadı");
             }
           });
           break;
@@ -82,7 +83,8 @@ class _DevicePageState extends State<DevicePage> {
           final record = model.record;
           if (record != null) {
             if (record.save) {
-              fileManager.saveRecord(record).then((value) => print(value));
+              fileManager.saveRecord(record).then((value) {
+              });
             }
           }
           break;
