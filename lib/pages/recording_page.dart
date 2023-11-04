@@ -2,14 +2,11 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:rxdart/rxdart.dart';
 import 'package:sensorify/backend/bluetooth_manager.dart';
 import 'package:sensorify/constants.dart';
 import 'package:sensorify/models/message_model.dart';
-import 'package:sensorify/models/record_model.dart';
 import 'package:sensorify/models/settings_model.dart';
 import 'package:sensorify/types.dart';
-import 'package:sensors_plus/sensors_plus.dart';
 
 import '../backend/sensor_manager.dart';
 
@@ -22,80 +19,33 @@ class RecordingPage extends StatefulWidget {
 }
 
 class _RecordingPageState extends State<RecordingPage> {
-  late int initialTimestamp;
   late Timer _timer;
   final RxInt _seconds = 0.obs;
-  SensorManager sensorManager = SensorManager();
+  SensorManager sensorManager = SensorManager.instance;
+  final BluetoothManager _bluetoothManager = BluetoothManager();
   List<Stream> streamData = [];
-  StreamSubscription? subscription;
-  BluetoothManager bluetoothManager = BluetoothManager();
-
-  Stream<dynamic> startStreamData(SensorType type) {
-    switch (type) {
-      case SensorType.accelerometer:
-        return sensorManager.accelerometerEventListener();
-      case SensorType.gyroscope:
-        return sensorManager.gyroscopeEventListener();
-      case SensorType.magnetometer:
-        return sensorManager.magnetometerEventListener();
-    }
-  }
-
-  void sendData(Duration duration) {
-    for(var stream in streamData) {
-      print(stream.runtimeType);
-    }
-    Stream combinedStream = MergeStream(streamData);
-    subscription = combinedStream
-        .throttle((event) => TimerStream(true, duration))
-        .listen((data) {
-          final currentTime = DateTime.now().millisecondsSinceEpoch;
-      if (data is AccelerometerEvent) {
-        final sensorData = RecordModel(
-            initialName: "Accelerometer$initialTimestamp",
-            sensorName: "Accelerometer",
-            axisX: data.x,
-            axisY: data.y,
-            axisZ: data.z,
-            timestamp: currentTime);
-        bluetoothManager.sendMessage(MessageModel(orderType: MessageOrderType.record, record: sensorData));
-      } else if (data is GyroscopeEvent) {
-        final sensorData = RecordModel(
-            initialName: "Gyroscope$initialTimestamp",
-            sensorName: "Gyroscope",
-            axisX: data.x,
-            axisY: data.y,
-            axisZ: data.z,
-            timestamp: currentTime);
-        bluetoothManager.sendMessage(MessageModel(orderType: MessageOrderType.record, record: sensorData));
-      } else {
-        final sensorData = RecordModel(
-            initialName: "Magnetometer$initialTimestamp",
-            sensorName: "Magnetometer",
-            axisX: data.x,
-            axisY: data.y,
-            axisZ: data.z,
-            timestamp: currentTime);
-        bluetoothManager.sendMessage(MessageModel(orderType: MessageOrderType.record, record: sensorData));
-      }
-    });
-  }
 
   @override
   void initState() {
-    initialTimestamp = DateTime.now().millisecondsSinceEpoch;
+    final int initialTimestamp = DateTime.now().millisecondsSinceEpoch;
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       _seconds.value++;
     });
     widget.settings.selectedSensors.forEach((key, value) {
       if (value) {
-        streamData.add(startStreamData(key));
+        streamData.add(sensorManager.getStreamData(key));
       }
     });
     if (widget.settings.durationType.name == "ms") {
-      sendData(Duration(milliseconds: widget.settings.durationDelay));
+      sensorManager.sendData(
+          initialTimestamp: initialTimestamp,
+          duration: Duration(milliseconds: widget.settings.durationDelay),
+          streamData: streamData);
     } else {
-      sendData(Duration(seconds: widget.settings.durationDelay));
+      sensorManager.sendData(
+          initialTimestamp: initialTimestamp,
+          duration: Duration(seconds: widget.settings.durationDelay),
+          streamData: streamData);
     }
     super.initState();
   }
@@ -103,9 +53,7 @@ class _RecordingPageState extends State<RecordingPage> {
   @override
   void dispose() {
     _timer.cancel();
-    if (subscription != null) {
-      subscription!.cancel();
-    }
+    sensorManager.cancelSubscription();
     super.dispose();
   }
 
@@ -123,8 +71,9 @@ class _RecordingPageState extends State<RecordingPage> {
         color: primaryBackgroundColor,
         child: Center(
           child: InkWell(
-            onTap: (){
-              bluetoothManager.sendMessage(MessageModel(orderType: MessageOrderType.stop));
+            onTap: () {
+              _bluetoothManager
+                  .sendMessage(MessageModel(orderType: MessageOrderType.stop));
               Get.back(canPop: false);
             },
             child: Container(

@@ -2,13 +2,12 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:provider/provider.dart';
 import 'package:sensorify/backend/bluetooth_manager.dart';
+import 'package:sensorify/backend/sensor_manager.dart';
 import 'package:sensorify/models/message_model.dart';
 import 'package:sensorify/pages/credit_page.dart';
-import 'package:sensorify/pages/live_data_page.dart';
 import 'package:sensorify/pages/record_settings_page.dart';
 import 'package:sensorify/pages/recording_page.dart';
 import 'package:sensorify/pages/training_page.dart';
@@ -30,30 +29,32 @@ class DevicePage extends StatefulWidget {
 
 class _DevicePageState extends State<DevicePage> {
   BluetoothManager bluetoothManager = BluetoothManager();
+  SensorManager sensorManager = SensorManager.instance;
   StreamController<String> messageStreamController = StreamController<String>();
   Stream<dynamic> get messageStream => bluetoothManager.getStream();
+
   FileManager fileManager = FileManager();
 
   List<Map<String, dynamic>> gridChildList = [
     {
       "name": "Live Data",
       "icon": Icons.multiline_chart,
-      "onTapPage": LiveDataSettingsPage(),
+      "onTapPage": const LiveDataSettingsPage(),
     },
     {
       "name": "Record",
       "icon": Icons.add_chart,
-      "onTapPage": RecordSettingsPage(),
+      "onTapPage": const RecordSettingsPage(),
     },
     {
       "name": "Training",
       "icon": Icons.cast_for_education,
-      "onTapPage": TrainingPage(),
+      "onTapPage": const TrainingPage(),
     },
     {
       "name": "Credit",
       "icon": Icons.person,
-      "onTapPage": CreditPage(),
+      "onTapPage": const CreditPage(),
     },
   ];
 
@@ -61,24 +62,46 @@ class _DevicePageState extends State<DevicePage> {
   void initState() {
     messageStream.listen((message) {
       MessageModel model = MessageModel.fromJson(json.decode(message));
-      if (model.orderType == MessageOrderType.record) {
-        final record = model.record;
-        if(record != null) {
-          fileManager.saveRecord(record).then((value) => print(value));
-        }
-      } else if (model.orderType == MessageOrderType.start) {
-        final settings = model.settings;
-        if (settings != null) {
-          Get.to(() => RecordingPage(settings: settings));
-        }
-      } else if (model.orderType == MessageOrderType.stop) {
-        fileManager.saveFileToDownloadsDirectory();
-      } else if(model.orderType == MessageOrderType.watch){
-        //TODO: Sadece izleme isteği gelmiştir ayarları alıp. İlgili
-        //sensorler başlatılacak. Daha sonra bir response yazılacak
-        //responsun adı belli değil daha. Hatta tüm bu yapıyı switch
-        //case olarak tanımlamalıyız. Bu messageOrderType ise önce response
-        //mu yoksa request mi olduğuna göre ayıklanmalı.
+      switch (model.orderType) {
+        case MessageOrderType.start:
+          final settings = model.settings;
+          if (settings != null) {
+            Get.to(() => RecordingPage(settings: settings));
+          }
+          break;
+        case MessageOrderType.stop:
+          print("kdjsfkldlkfjlk");
+          sensorManager.cancelSubscription();
+          fileManager.saveFileToDownloadsDirectory().then((value) {
+            if (value) {
+              Get.snackbar("x", "xxxxxxxxxxx");
+            }
+          });
+          break;
+        case MessageOrderType.record:
+          final record = model.record;
+          if (record != null) {
+            if (record.save) {
+              fileManager.saveRecord(record).then((value) => print(value));
+            }
+          }
+          break;
+        case MessageOrderType.watch:
+          final settings = model.settings;
+          if (settings != null) {
+            settings.selectedSensors.forEach((key, value) {
+              if (value) {
+                final streamData = sensorManager.getStreamData(key);
+                sensorManager.sendData(
+                  initialTimestamp: DateTime.now().millisecondsSinceEpoch,
+                  duration: const Duration(milliseconds: 500),
+                  streamData: [streamData],
+                  save: false,
+                );
+              }
+            });
+          }
+          break;
       }
     });
     super.initState();

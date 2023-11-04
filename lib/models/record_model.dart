@@ -5,6 +5,7 @@ class RecordModel {
   final double axisY;
   final double axisZ;
   final int timestamp;
+  bool save;
 
   RecordModel({
     required this.initialName,
@@ -13,6 +14,7 @@ class RecordModel {
     required this.axisY,
     required this.axisZ,
     required this.timestamp,
+    this.save = true,
   });
 
   Map<String, dynamic> toJson() {
@@ -23,6 +25,7 @@ class RecordModel {
       "axisY": axisY,
       "axisZ": axisZ,
       "timestamp": timestamp,
+      "save": save,
     };
   }
 
@@ -34,6 +37,7 @@ class RecordModel {
       axisY: json["axisY"].toDouble(),
       axisZ: json["axisZ"].toDouble(),
       timestamp: json["timestamp"],
+      save: json["save"],
     );
   }
 }

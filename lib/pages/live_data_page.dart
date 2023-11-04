@@ -1,43 +1,63 @@
+import 'dart:async';
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
-import 'package:get/get_rx/src/rx_types/rx_types.dart';
-import 'package:get/get_state_manager/src/rx_flutter/rx_obx_widget.dart';
 import 'package:real_time_chart/real_time_chart.dart';
 import 'package:sensorify/backend/bluetooth_manager.dart';
-import 'package:sensorify/backend/sensor_manager.dart';
+import 'package:sensorify/constants.dart';
 import 'package:sensorify/models/message_model.dart';
-import 'package:sensorify/models/settings_model.dart';
-import 'package:sensors_plus/sensors_plus.dart';
 
 import '../types.dart';
 
 class LiveDataPage extends StatefulWidget {
-  final SensorType type;
-  const LiveDataPage({Key? key, required this.type}) : super(key: key);
+  const LiveDataPage({Key? key}) : super(key: key);
 
   @override
   State<LiveDataPage> createState() => _LiveDataPageState();
 }
 
 class _LiveDataPageState extends State<LiveDataPage> {
-  RxList<Container> dataList = RxList<Container>([]);
   BluetoothManager bluetoothManager = BluetoothManager();
+  Stream<dynamic> get messageStream => bluetoothManager.getStream();
+  final StreamController<dynamic> _bluetoothStreamController =
+      StreamController<dynamic>();
+  StreamController<double> _axisXStreamController = StreamController<double>();
+  StreamController<double> _axisYStreamController = StreamController<double>();
+  StreamController<double> _axisZStreamController = StreamController<double>();
+  final double growth = 5;
+
+  void startBluetoothListening() {
+    BluetoothManager bluetoothManager = BluetoothManager();
+    bluetoothManager.getStream().listen((message) {
+      MessageModel model = MessageModel.fromJson(json.decode(message));
+      if (model.orderType == MessageOrderType.record) {
+        final record = model.record;
+        if (record != null) {
+          if (!record.save) {
+            _bluetoothStreamController.sink.add(record);
+            _axisXStreamController.sink.add(record.axisX * growth);
+            _axisYStreamController.sink.add(record.axisY * growth);
+            _axisZStreamController.sink.add(record.axisZ * growth);
+          }
+        }
+      }
+    });
+  }
+
   @override
   void initState() {
-    bluetoothManager.sendMessage(
-      MessageModel(
-        orderType: MessageOrderType.watch,
-        settings: SettingsModel(
-            durationDelay: 500,
-            durationType: DurationType.ms,
-            selectedSensors: {widget.type: true}),
-      ),
-    );
+    startBluetoothListening();
     super.initState();
   }
 
   @override
   void dispose() {
-    //TODO: Send 'stopStream' message to watch
+    _bluetoothStreamController.close();
+    _axisXStreamController.close();
+    _axisYStreamController.close();
+    _axisZStreamController.close();
+    bluetoothManager
+        .sendMessage(MessageModel(orderType: MessageOrderType.stop));
     super.dispose();
   }
 
@@ -45,69 +65,102 @@ class _LiveDataPageState extends State<LiveDataPage> {
   Widget build(BuildContext context) {
     double width = MediaQuery.of(context).size.width;
     double height = MediaQuery.of(context).size.height;
-    Color backgroundColor = const Color(0xFF1C1C1E);
-    // List<Widget> stackedCharts = buildStackedCharts(3);
     return Scaffold(
+      appBar: AppBar(
+        centerTitle: true,
+        title: const Text("Sensorify"),
+      ),
       body: Container(
         height: height,
         width: width,
-        color: backgroundColor,
         alignment: Alignment.center,
-        child: SizedBox(
-            width: width - 10,
-            height: width - 10,
-            child: StreamBuilder<dynamic>(
-                stream: startStreamData(),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            SizedBox(
+              width: width -10,
+              height: width -10,
+              child: StreamBuilder<dynamic>(
+                stream: _bluetoothStreamController.stream,
                 builder: (context, snapshot) {
                   if (snapshot.hasData) {
-                    var event = snapshot.data;
-                    String x = event.x.toString();
-                    String y = event.y.toString();
-                    String z = event.z.toString();
-
-                    Container dataBox = Container(
-                      width: width,
-                      height: 30,
-                      alignment: Alignment.centerLeft,
-                      child: Text("x:$x and y:$y and z:$z"),
-                    );
-                    dataList.value.add(dataBox);
-                    return Obx(
-                      () => ListView(
-                        scrollDirection: Axis.vertical,
-                        physics: const AlwaysScrollableScrollPhysics(),
-                        reverse: false,
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 10),
-                        children: dataList,
-                      ),
+                    var record = snapshot.data;
+                    List<Color> graphColors = [
+                      xAxisColor,
+                      yAxisColor,
+                      zAxisColor,
+                    ];
+                    List records = [
+                      _axisXStreamController,
+                      _axisYStreamController,
+                      _axisZStreamController,
+                    ];
+                    List<Widget> charts = [];
+                    for (int i = 0; i < 3; i++) {
+                      Widget chart = RealTimeGraph(
+                        displayYAxisValues: false,
+                        graphStroke: 3,
+                        xAxisColor: Colors.white,
+                        yAxisColor: Colors.white,
+                        graphColor: graphColors[i],
+                        stream: records[i].stream,
+                        supportNegativeValuesDisplay: true,
+                      );
+                      charts.add(
+                        Positioned.fill(
+                          child: Align(
+                            alignment: Alignment.center,
+                            child: chart,
+                          ),
+                        ),
+                      );
+                    }
+                    return Stack(
+                      children: charts,
                     );
                   } else {
                     return Container();
                   }
-                })),
+                },
+              ),
+            ),
+            SizedBox(
+              width: width - 10,
+              height: 90,
+              child: Column(
+                children: [
+                  getInfoBox(width: width, color: xAxisColor, title: "X Ekseni"),
+                  getInfoBox(width: width, color: yAxisColor, title: "Y Ekseni"),
+                  getInfoBox(width: width, color: zAxisColor, title: "Z Ekseni"),
+                ],
+              ),
+            )
+          ],
+        ),
       ),
     );
   }
-  // List<Widget> buildStackedCharts(int length) {
-  //   List<Widget> charts = [];
-  //   for (int i = 0; i < length; i++) {
-  //     Widget chart = RealTimeGraph(
-  //       xAxisColor: Colors.white,
-  //       yAxisColor: Colors.white,
-  //       graphColor: _colorList[i],
-  //       stream: startStreamData(),
-  //       supportNegativeValuesDisplay: true,
-  //     );
-  //     charts.add(
-  //       Positioned.fill(
-  //         child: Align(
-  //           alignment: Alignment.center,
-  //           child: chart,
-  //         ),
-  //       ),
-  //     );
-  //   }
-  //   return charts;
-  // }
+  Widget getInfoBox({double height = 30, required double width, required Color color, required String title}){
+    const double spacing = 10;
+    return SizedBox(
+      width: width - spacing,
+      height: height,
+      child: Row(
+        children: [
+          Container(
+            width: height,
+            height: height,
+            color: color,
+          ),
+          Container(
+            width: width - spacing - height,
+            height: height,
+            padding: const EdgeInsets.only(left: 20),
+            alignment: Alignment.centerLeft,
+            child: Text(title, style: const TextStyle(color: Colors.white, overflow: TextOverflow.ellipsis),),
+          ),
+        ],
+      ),
+    );
+  }
 }

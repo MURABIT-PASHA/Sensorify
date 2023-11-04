@@ -209,10 +209,10 @@ class _RecordSettingsPageState extends State<RecordSettingsPage> {
   }
 
   Future<bool> writeAndReadPermission() async {
-    if(await Permission.manageExternalStorage.isGranted && await Permission.storage.isGranted){
+    if(await Permission.storage.isGranted){
       return true;
     }else{
-      await [Permission.manageExternalStorage, Permission.storage].request();
+      await [Permission.storage].request();
       return false;
     }
   }
