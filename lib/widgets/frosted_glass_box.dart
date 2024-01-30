@@ -15,13 +15,13 @@ class FrostedGlassBox extends StatelessWidget {
   final Widget child;
   @override
   Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(15),
-      child: Container(
-        margin: const EdgeInsets.only(top: 5.0, bottom: 5.0),
-        width: width,
-        height: height,
-        color: Colors.transparent,
+    return Container(
+      margin: const EdgeInsets.only(top: 5.0, bottom: 5.0),
+      width: width,
+      height: height,
+      color: Colors.transparent,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(15),
         child: Stack(
           children: [
             BackdropFilter(
@@ -29,7 +29,7 @@ class FrostedGlassBox extends StatelessWidget {
                 sigmaX: 4.0,
                 sigmaY: 4.0,
               ),
-              child: Container(),
+              child: null,
             ),
             Container(
               decoration: BoxDecoration(

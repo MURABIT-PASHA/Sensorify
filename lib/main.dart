@@ -3,9 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
-import 'package:get/get_navigation/src/root/get_material_app.dart';
-import 'package:get/get_rx/src/rx_types/rx_types.dart';
-import 'package:get/get_state_manager/src/rx_flutter/rx_obx_widget.dart';
+import 'package:get/get.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:sensorify/backend/bluetooth_manager.dart';
@@ -73,7 +71,9 @@ class _HomePageState extends State<HomePage> {
       Permission.bluetooth,
       Permission.bluetoothConnect,
       Permission.bluetoothScan
-    ].request().then((value) => startCheck());
+    ].request().then((value) {
+      startCheck();
+    });
     FlutterNativeSplash.remove();
     super.initState();
   }
@@ -106,23 +106,16 @@ class _HomePageState extends State<HomePage> {
                                     .then((value) => bluetoothStatus
                                         .updateConnectionStatus(true));
                               } else {
-                                if (mounted) {
-                                  showDialog(
-                                    context: context,
-                                    builder: (builder) => AlertDialog(
-                                      title: const Text("Scan Devices"),
-                                      content: ScanDialog(
-                                        width:
-                                            MediaQuery.of(context).size.width -
-                                                100,
-                                        height:
-                                            MediaQuery.of(context).size.height *
-                                                2 /
-                                                3,
-                                      ),
-                                    ),
-                                  );
-                                }
+                                Get.defaultDialog(
+                                  title: "Cihazları keşfet",
+                                  content: ScanDialog(
+                                    width:
+                                        MediaQuery.of(context).size.width - 100,
+                                    height: MediaQuery.of(context).size.height *
+                                        2 /
+                                        3,
+                                  ),
+                                );
                               }
                             },
                             icon: Icon(Icons.watch,

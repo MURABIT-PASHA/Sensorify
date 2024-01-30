@@ -26,27 +26,23 @@ class _RecordSettingsPageState extends State<RecordSettingsPage> {
 
   final Widget accelerometerIcon = SvgPicture.asset(
       "assets/icons/accelerometer.svg",
-      semanticsLabel: 'Accelerometer Logo'
-  );
-  final Widget gyroscopeIcon = SvgPicture.asset(
-      "assets/icons/gyroscope.svg",
-      semanticsLabel: 'Gyroscope Logo'
-  );
+      semanticsLabel: 'Accelerometer Logo');
+  final Widget gyroscopeIcon = SvgPicture.asset("assets/icons/gyroscope.svg",
+      semanticsLabel: 'Gyroscope Logo');
   final Widget magnetometerIcon = SvgPicture.asset(
       "assets/icons/magnetometer.svg",
-      semanticsLabel: 'Magnetometer Logo'
-  );
+      semanticsLabel: 'Magnetometer Logo');
 
   @override
   void initState() {
-    for(var type in SensorType.values){
+    for (var type in SensorType.values) {
       selectedSensors[type] = false;
     }
     super.initState();
   }
 
-  SettingsModel? checkParameters(){
-    if(_durationDelay!=0){
+  SettingsModel? checkParameters() {
+    if (_durationDelay != 0) {
       int falseCount = 0;
 
       selectedSensors.forEach((key, value) {
@@ -54,7 +50,7 @@ class _RecordSettingsPageState extends State<RecordSettingsPage> {
           falseCount++;
         }
       });
-      if(falseCount>0){
+      if (falseCount > 0) {
         final SettingsModel finalSettings = SettingsModel(
             durationDelay: _durationDelay,
             durationType: _durationType.value,
@@ -78,7 +74,7 @@ class _RecordSettingsPageState extends State<RecordSettingsPage> {
         children: [
           Container(
             padding: const EdgeInsets.all(10.0),
-            height: height/2,
+            height: height / 2,
             child: ListView.builder(
               itemCount: SensorType.values.length,
               itemBuilder: (BuildContext context, int index) {
@@ -88,7 +84,9 @@ class _RecordSettingsPageState extends State<RecordSettingsPage> {
                   child: ListTile(
                     leading: Icon(
                       Icons.save,
-                      color: selectedSensors[SensorType.values[index]]! ? Colors.green : Colors.red,
+                      color: selectedSensors[SensorType.values[index]]!
+                          ? Colors.green
+                          : Colors.red,
                     ),
                     title: Text(
                       SensorType.values[index].name.toUpperCase(),
@@ -98,12 +96,22 @@ class _RecordSettingsPageState extends State<RecordSettingsPage> {
                       padding: const EdgeInsets.only(top: 5, bottom: 10),
                       height: 50,
                       width: 50,
-                      child: SensorType.values[index].name == SensorType.accelerometer.name?accelerometerIcon:SensorType.values[index].name == SensorType.magnetometer.name?magnetometerIcon:gyroscopeIcon,
+                      child: SensorType.values[index].name ==
+                              SensorType.accelerometer.name
+                          ? accelerometerIcon
+                          : SensorType.values[index].name ==
+                                  SensorType.magnetometer.name
+                              ? magnetometerIcon
+                              : gyroscopeIcon,
                     ),
                     onTap: () {
-                      setState(() {
-                        selectedSensors[SensorType.values[index]] = !(selectedSensors[SensorType.values[index]]??false);
-                      });
+                      setState(
+                        () {
+                          selectedSensors[SensorType.values[index]] =
+                              !(selectedSensors[SensorType.values[index]] ??
+                                  false);
+                        },
+                      );
                     },
                   ),
                 );
@@ -112,7 +120,7 @@ class _RecordSettingsPageState extends State<RecordSettingsPage> {
           ),
           Container(
             padding: const EdgeInsets.all(10.0),
-            height: height/2,
+            height: height / 2,
             child: Column(
               children: [
                 FrostedGlassBox(
@@ -134,54 +142,59 @@ class _RecordSettingsPageState extends State<RecordSettingsPage> {
                                 _durationDelay = int.parse(value);
                               } catch (exception) {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                        content: Text("Wrong argument")));
+                                  const SnackBar(
+                                    content: Text("Wrong argument"),
+                                  ),
+                                );
                                 _delayController.clear();
                               }
                             },
                             textAlignVertical: TextAlignVertical.bottom,
                             decoration: InputDecoration(
-                                border: OutlineInputBorder(
-                                  borderSide: const BorderSide(color: Colors.white),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                hintText: "Time delay",
-                                hintStyle: const TextStyle(
-                                    color: Colors.white12,
-                                    fontStyle: FontStyle.italic)),
+                              border: OutlineInputBorder(
+                                borderSide:
+                                    const BorderSide(color: Colors.white),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              hintText: "Time delay",
+                              hintStyle: const TextStyle(
+                                  color: Colors.white12,
+                                  fontStyle: FontStyle.italic),
+                            ),
                             keyboardType: TextInputType.number,
                           ),
                         ),
                         SizedBox(
                           width: 70,
-                          child: Obx(()=>
-                            DropdownButtonHideUnderline(
+                          child: Obx(
+                            () => DropdownButtonHideUnderline(
                               child: DropdownButton(
                                 borderRadius: BorderRadius.circular(12),
                                 value: _durationType.value.name,
-                                  items: const [
-                                    DropdownMenuItem(
-                                      value: "ms",
-                                      child: Text("ms"),
-                                    ),
-                                    DropdownMenuItem(
-                                      value: "s",
-                                      child: Text("s"),
-                                    )
-                                  ],
-                                  onChanged: (value) {
-                                  switch(value){
+                                items: const [
+                                  DropdownMenuItem(
+                                    value: "ms",
+                                    child: Text("ms"),
+                                  ),
+                                  DropdownMenuItem(
+                                    value: "s",
+                                    child: Text("s"),
+                                  )
+                                ],
+                                onChanged: (value) {
+                                  switch (value) {
                                     case "ms":
                                       _durationType.value = DurationType.ms;
                                       break;
-                                      case "s":
-                                        _durationType.value = DurationType.s;
-                                        break;
+                                    case "s":
+                                      _durationType.value = DurationType.s;
+                                      break;
                                     default:
                                       _durationType.value = DurationType.ms;
                                       break;
                                   }
-                                  }),
+                                },
+                              ),
                             ),
                           ),
                         ),
@@ -192,26 +205,36 @@ class _RecordSettingsPageState extends State<RecordSettingsPage> {
                 InkWell(
                   onTap: () async {
                     final model = checkParameters();
-                    if(model != null){
-                      if(await writeAndReadPermission()) {
-                        bluetoothManager.sendMessage(MessageModel(orderType: MessageOrderType.start, settings: model));
+                    if (model != null) {
+                      if (await writeAndReadPermission()) {
+                        bluetoothManager.sendMessage(
+                          MessageModel(
+                              orderType: MessageOrderType.start,
+                              settings: model),
+                        );
                       }
                     }
                   },
-                    child: FrostedGlassBox(width: width/2, height: 50, child: const Center(child: Text("Start Record"))))
-
+                  child: FrostedGlassBox(
+                    width: width / 2,
+                    height: 50,
+                    child: const Center(
+                      child: Text("Start Record"),
+                    ),
+                  ),
+                )
               ],
             ),
           )
         ],
-      )
+      ),
     );
   }
 
   Future<bool> writeAndReadPermission() async {
-    if(await Permission.storage.isGranted){
+    if (await Permission.storage.isGranted) {
       return true;
-    }else{
+    } else {
       await [Permission.storage].request();
       return false;
     }

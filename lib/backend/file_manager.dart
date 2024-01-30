@@ -51,31 +51,45 @@ class FileManager {
     return true;
   }
 
-  Future<bool> saveFileToDownloadsDirectory()async{
-      Directory directory = await getApplicationDocumentsDirectory();
-      List<FileSystemEntity> files = directory.listSync();
-      for (FileSystemEntity file in files) {
-        if (file is File) {
-          if(file.path.contains(".csv")){
-            final fileName = file.path.split("/").last;
-            final filePath = '${await _storagePath}/Sensorify/$fileName';
-            File writtenFile = File(filePath);
-            if(!await writtenFile.exists()){
-              try{
-                await writtenFile.create(recursive: true);
-              }
-              catch(e){
-                if(e is FileSystemException){
-                  print(e);
-                  return false;
-                }
+  Future<bool> saveFileToDownloadsDirectory() async {
+    Directory directory = await getApplicationDocumentsDirectory();
+    List<FileSystemEntity> files = directory.listSync();
+    for (FileSystemEntity file in files) {
+      if (file is File) {
+        if (file.path.contains(".csv")) {
+          final fileName = file.path.split("/").last;
+          final filePath = '${await _storagePath}/Sensorify/$fileName';
+          File writtenFile = File(filePath);
+          if (!await writtenFile.exists()) {
+            try {
+              await writtenFile.create(recursive: true);
+            } catch (e) {
+              if (e is FileSystemException) {
+                return false;
               }
             }
-            file.copy(filePath);
-            file.deleteSync();
           }
+          file.copy(filePath);
+          file.deleteSync();
         }
       }
-      return true;
+    }
+    return true;
+  }
+
+  Future<List<String>> getDirectoryFileNames() async {
+    final filePath = '${await _storagePath}/Sensorify';
+    final directory = Directory(filePath);
+    List<String> csvFiles = [];
+
+    if (await directory.exists()) {
+      await for (var file in directory.list()) {
+        if (file is File && file.path.endsWith('.csv')) {
+          csvFiles.add(file.path.split('/').last);
+        }
+      }
+    }
+    print(csvFiles);
+    return csvFiles;
   }
 }
