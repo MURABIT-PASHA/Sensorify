@@ -99,7 +99,8 @@ class _HomePageState extends State<HomePage> {
                       ? [
                           IconButton(
                             onPressed: () async {
-                              if (bluetoothStatus.isDeviceRegistered) {
+                              if (bluetoothStatus.isDeviceRegistered && bluetoothStatus.deviceAddress != "NULL" && bluetoothStatus.deviceAddress != "") {
+                                print(bluetoothStatus.deviceAddress);
                                 bluetoothManager
                                     .connectToBluetoothDevice(
                                         bluetoothStatus.deviceAddress)

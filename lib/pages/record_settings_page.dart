@@ -50,7 +50,7 @@ class _RecordSettingsPageState extends State<RecordSettingsPage> {
           falseCount++;
         }
       });
-      if (falseCount > 0) {
+      if (falseCount < 3) {
         final SettingsModel finalSettings = SettingsModel(
             durationDelay: _durationDelay,
             durationType: _durationType.value,

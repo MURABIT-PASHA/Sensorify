@@ -2,7 +2,6 @@ import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sensorify/backend/bluetooth_manager.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:get/get.dart';
 import '../provider/device_status_provider.dart';
 
@@ -19,16 +18,9 @@ class ScanDialog extends StatefulWidget {
 class _ScanDialogState extends State<ScanDialog> {
   BluetoothManager bluetoothManager = BluetoothManager();
 
-  Future<List<Map<String, String>>> getScanResult() async {
-    List<dynamic> dynamicData = await bluetoothManager.getData();
-    List<Map<String, String>> scanResults = dynamicData.map((dynamic element) {
-      String address = element["address"] ?? "";
-      String name = element["name"] ?? "";
-
-      return {"address": address, "name": name};
-    }).toList();
-
-    return scanResults;
+  Future<List<Map<String, dynamic>>> getScanResult() async {
+    return await bluetoothManager
+        .scanBluetoothDevices(const Duration(seconds: 5));
   }
 
   Future<void> _refreshData() async {
@@ -84,10 +76,17 @@ class _ScanDialogState extends State<ScanDialog> {
                         leading: Text("$address\n$name"),
                         onTap: () async {
                           await bluetoothManager
-                              .connectToBluetoothDevice(address);
-                          deviceStatus.registerDeviceAddress(address).then((value) {
-                            Get.back();
-                            deviceStatus.updateConnectionStatus(value);
+                              .connectToBluetoothDevice(address)
+                              .then((value) async {
+                            if (value) {
+                              deviceStatus.updateDeviceCharacteristics(await bluetoothManager.getCharacteristics(address));
+                              deviceStatus
+                                  .registerDeviceAddress(address)
+                                  .then((value) {
+                                Get.back();
+                                deviceStatus.updateConnectionStatus(value);
+                              });
+                            }
                           });
                         },
                       );

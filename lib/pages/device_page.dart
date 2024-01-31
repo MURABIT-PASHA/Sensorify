@@ -148,6 +148,7 @@ class _DevicePageState extends State<DevicePage> {
                       final address =
                           prefs.getString("deviceAddress") ?? "NULL";
                       if (address != "NULL") {
+                        print(address);
                         if (await bluetoothManager
                             .connectToBluetoothDevice(address)) {
                           provider.updateConnectionStatus(true);
