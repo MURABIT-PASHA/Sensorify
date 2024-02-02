@@ -3,8 +3,8 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:real_time_chart/real_time_chart.dart';
-import 'package:sensorify/backend/bluetooth_manager.dart';
 import 'package:sensorify/constants.dart';
+import 'package:sensorify/helpers/socket_helper.dart';
 import 'package:sensorify/models/message_model.dart';
 
 import '../types.dart';
@@ -17,8 +17,8 @@ class LiveDataPage extends StatefulWidget {
 }
 
 class _LiveDataPageState extends State<LiveDataPage> {
-  BluetoothManager bluetoothManager = BluetoothManager();
-  Stream<dynamic> get messageStream => bluetoothManager.getStream();
+  SocketHelper socket = SocketHelper();
+  Stream<dynamic> get messageStream => socket.getStream();
   final StreamController<dynamic> _bluetoothStreamController =
       StreamController<dynamic>();
   final StreamController<double> _axisXStreamController = StreamController<double>();
@@ -27,8 +27,7 @@ class _LiveDataPageState extends State<LiveDataPage> {
   final double growth = 5;
 
   void startBluetoothListening() {
-    BluetoothManager bluetoothManager = BluetoothManager();
-    bluetoothManager.getStream().listen((message) {
+    socket.getStream().listen((message) {
       MessageModel model = MessageModel.fromJson(json.decode(message));
       if (model.orderType == MessageOrderType.record) {
         final record = model.record;
@@ -56,7 +55,7 @@ class _LiveDataPageState extends State<LiveDataPage> {
     _axisXStreamController.close();
     _axisYStreamController.close();
     _axisZStreamController.close();
-    bluetoothManager
+    socket
         .sendMessage(MessageModel(orderType: MessageOrderType.stop));
     super.dispose();
   }

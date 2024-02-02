@@ -1,21 +1,21 @@
 import 'dart:async';
 
 import 'package:rxdart/rxdart.dart';
+import 'package:sensorify/helpers/socket_helper.dart';
+import 'package:sensorify/models/message_model.dart';
+import 'package:sensorify/models/record_model.dart';
+import 'package:sensorify/types.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 
-import '../models/message_model.dart';
-import '../models/record_model.dart';
-import '../types.dart';
-import 'bluetooth_manager.dart';
-
 class SensorManager {
+
+  SocketHelper _socket = SocketHelper();
   SensorManager._privateConstructor();
 
   static final SensorManager _instance = SensorManager._privateConstructor();
 
   static SensorManager get instance => _instance;
 
-  final BluetoothManager _bluetoothManager = BluetoothManager();
 
   StreamSubscription? _subscription;
 
@@ -84,7 +84,7 @@ class SensorManager {
             axisZ: data.z,
             timestamp: currentTime,
             save: save);
-        _bluetoothManager.sendMessage(MessageModel(
+        _socket.sendMessage(MessageModel(
             orderType: MessageOrderType.record, record: sensorData));
       } else if (data is GyroscopeEvent) {
         final sensorData = RecordModel(
@@ -95,7 +95,7 @@ class SensorManager {
             axisZ: data.z,
             timestamp: currentTime,
             save: save);
-        _bluetoothManager.sendMessage(MessageModel(
+        _socket.sendMessage(MessageModel(
             orderType: MessageOrderType.record, record: sensorData));
       } else {
         final sensorData = RecordModel(
@@ -106,7 +106,7 @@ class SensorManager {
             axisZ: data.z,
             timestamp: currentTime,
             save: save);
-        _bluetoothManager.sendMessage(MessageModel(
+        _socket.sendMessage(MessageModel(
             orderType: MessageOrderType.record, record: sensorData));
       }
     });

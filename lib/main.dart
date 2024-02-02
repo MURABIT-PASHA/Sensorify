@@ -1,12 +1,9 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:get/get.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
-import 'package:sensorify/backend/bluetooth_manager.dart';
 import 'package:sensorify/constants.dart';
 import 'package:sensorify/pages/bluetooth_status_page.dart';
 import 'package:sensorify/provider/device_status_provider.dart';
@@ -28,7 +25,7 @@ class Sensorify extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (context) => DeviceStatusProvider()),
+        ChangeNotifierProvider(create: (context) => SocketStatusProvider()),
         ChangeNotifierProvider(create: (context) => OrderStatusProvider()),
       ],
       child: GetMaterialApp(
@@ -36,6 +33,7 @@ class Sensorify extends StatelessWidget {
           theme: buildLightTheme(),
           darkTheme: buildDarkTheme(),
           themeMode: ThemeMode.dark,
+          locale: const Locale('en'),
           home: const HomePage()),
     );
   }
@@ -49,30 +47,17 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  BluetoothManager bluetoothManager = BluetoothManager();
   Rx<bool> isBluetoothAvailable = false.obs;
   Rx<bool> isDeviceConnected = false.obs;
 
-  void checkBluetoothStatus() {
-    isBluetoothAvailable.value = bluetoothManager.checkBluetoothStatus();
-  }
-
-  void startCheck() {
-    Timer.periodic(const Duration(milliseconds: 500), (timer) {
-      checkBluetoothStatus();
-    });
-  }
+  void startSocketIfConnectedBefore() {}
 
   @override
   void initState() {
     [
-      Permission.location,
       Permission.storage,
-      Permission.bluetooth,
-      Permission.bluetoothConnect,
-      Permission.bluetoothScan
     ].request().then((value) {
-      startCheck();
+      startSocketIfConnectedBefore();
     });
     FlutterNativeSplash.remove();
     super.initState();
@@ -80,8 +65,8 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    final bluetoothStatus =
-        Provider.of<DeviceStatusProvider>(context, listen: true);
+    final socketStatus =
+        Provider.of<SocketStatusProvider>(context, listen: true);
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: const SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
@@ -89,47 +74,38 @@ class _HomePageState extends State<HomePage> {
         systemNavigationBarIconBrightness: Brightness.light,
       ),
       child: Obx(() {
-        bluetoothStatus.checkRegistration();
+        socketStatus.checkRegistration();
         return Scaffold(
-          appBar: !bluetoothStatus.isDeviceConnected
+          appBar: !socketStatus.isDeviceConnected
               ? AppBar(
                   centerTitle: true,
                   title: const Text("Sensorify"),
-                  actions: isBluetoothAvailable.value
-                      ? [
-                          IconButton(
-                            onPressed: () async {
-                              if (bluetoothStatus.isDeviceRegistered && bluetoothStatus.deviceAddress != "NULL" && bluetoothStatus.deviceAddress != "") {
-                                print(bluetoothStatus.deviceAddress);
-                                bluetoothManager
-                                    .connectToBluetoothDevice(
-                                        bluetoothStatus.deviceAddress)
-                                    .then((value) => bluetoothStatus
-                                        .updateConnectionStatus(true));
-                              } else {
-                                Get.defaultDialog(
-                                  title: "Cihazları keşfet",
-                                  content: ScanDialog(
-                                    width:
-                                        MediaQuery.of(context).size.width - 100,
-                                    height: MediaQuery.of(context).size.height *
-                                        2 /
-                                        3,
-                                  ),
-                                );
-                              }
-                            },
-                            icon: Icon(Icons.watch,
-                                color: bluetoothStatus.isDeviceConnected
-                                    ? Colors.green
-                                    : Colors.red),
-                          )
-                        ]
-                      : null,
-                )
+                  actions: [
+                      IconButton(
+                        onPressed: () async {
+                          if (socketStatus.isDeviceRegistered &&
+                              socketStatus.deviceAddress != "NULL" &&
+                              socketStatus.deviceAddress != "") {
+                          } else {
+                            Get.defaultDialog(
+                              title: "Cihazları keşfet",
+                              content: ScanDialog(
+                                width: MediaQuery.of(context).size.width - 100,
+                                height:
+                                    MediaQuery.of(context).size.height * 2 / 3,
+                              ),
+                            );
+                          }
+                        },
+                        icon: Icon(Icons.watch,
+                            color: socketStatus.isDeviceConnected
+                                ? Colors.green
+                                : Colors.red),
+                      )
+                    ])
               : null,
           body: isBluetoothAvailable.value
-              ? bluetoothStatus.isDeviceConnected
+              ? socketStatus.isDeviceConnected
                   ? const DevicePage()
                   : const Center(
                       child: Text("Hiçbir cihaz bağlı değil"),

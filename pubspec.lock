@@ -129,14 +129,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "6.1.4"
-  fixnum:
-    dependency: transitive
-    description:
-      name: fixnum
-      sha256: "25517a4deb0c03aa0f32fd12db525856438902d9c16536311e76cdc57b31d7d1"
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.1.0"
   flutter:
     dependency: "direct main"
     description: flutter
@@ -158,14 +150,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.2.19"
-  flutter_reactive_ble:
-    dependency: "direct main"
-    description:
-      name: flutter_reactive_ble
-      sha256: "7a0d245412dc8e1b72ce2adc423808583b42ce824b1be74001ff22c8bb5ada48"
-      url: "https://pub.dev"
-    source: hosted
-    version: "5.2.0"
   flutter_svg:
     dependency: "direct main"
     description:
@@ -184,14 +168,6 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
-  functional_data:
-    dependency: transitive
-    description:
-      name: functional_data
-      sha256: aefdec4365452283b2a7cf420a3169654d51d3e9553069a22d76680d7a9d7c3d
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.1.1"
   get:
     dependency: "direct main"
     description:
@@ -240,6 +216,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.1"
+  logging:
+    dependency: transitive
+    description:
+      name: logging
+      sha256: "623a88c9594aa774443aa3eb2d41807a48486b5613e67599fb4c41c0ad47c340"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.2.0"
   lottie:
     dependency: "direct main"
     description:
@@ -424,14 +408,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.7.3"
-  protobuf:
-    dependency: transitive
-    description:
-      name: protobuf
-      sha256: "01dd9bd0fa02548bf2ceee13545d4a0ec6046459d847b6b061d8a27237108a08"
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.1.0"
   provider:
     dependency: "direct main"
     description:
@@ -440,22 +416,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "6.0.5"
-  reactive_ble_mobile:
-    dependency: transitive
-    description:
-      name: reactive_ble_mobile
-      sha256: e4623446d5fd6e641c984892ee1fa7c67499a2bb0971d85a500815e1d05db6fb
-      url: "https://pub.dev"
-    source: hosted
-    version: "5.2.0"
-  reactive_ble_platform_interface:
-    dependency: transitive
-    description:
-      name: reactive_ble_platform_interface
-      sha256: "8988d16497886dccc69dca1c3eebce28ae387371f3f948a4f1b03dec9954fb05"
-      url: "https://pub.dev"
-    source: hosted
-    version: "5.2.0"
   real_time_chart:
     dependency: "direct main"
     description:
@@ -549,6 +509,22 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.99"
+  socket_io_client:
+    dependency: "direct main"
+    description:
+      name: socket_io_client
+      sha256: ede469f3e4c55e8528b4e023bdedbc20832e8811ab9b61679d1ba3ed5f01f23b
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.3+1"
+  socket_io_common:
+    dependency: transitive
+    description:
+      name: socket_io_common
+      sha256: "2ab92f8ff3ebbd4b353bf4a98bee45cc157e3255464b2f90f66e09c4472047eb"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.3"
   source_span:
     dependency: transitive
     description:

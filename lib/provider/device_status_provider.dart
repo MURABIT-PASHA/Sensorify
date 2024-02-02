@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_reactive_ble/flutter_reactive_ble.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class DeviceStatusProvider extends ChangeNotifier {
+class SocketStatusProvider extends ChangeNotifier {
   bool _isDeviceRegistered = false;
 
   bool get isDeviceRegistered => _isDeviceRegistered;
@@ -14,10 +13,7 @@ class DeviceStatusProvider extends ChangeNotifier {
   bool _isDeviceConnected = false;
 
   bool get isDeviceConnected => _isDeviceConnected;
-
-
-  List<Characteristic> _deviceCharacteristics = [];
-  List<Characteristic> get deviceCharacteristics => _deviceCharacteristics;
+  
 
   Future<bool> registerDeviceAddress(String address) async {
     final prefs = await SharedPreferences.getInstance();
@@ -41,11 +37,7 @@ class DeviceStatusProvider extends ChangeNotifier {
       }
     }
   }
-
-  void updateDeviceCharacteristics(List<Characteristic> characteristics){
-    _deviceCharacteristics = characteristics;
-    notifyListeners();
-  }
+  
 
   void _updateRegistrationStatus(bool status) {
     _isDeviceRegistered = status;

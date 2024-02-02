@@ -4,8 +4,9 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:provider/provider.dart';
-import 'package:sensorify/backend/bluetooth_manager.dart';
-import 'package:sensorify/backend/sensor_manager.dart';
+import 'package:sensorify/helpers/file_helper.dart';
+import 'package:sensorify/helpers/sensor_helper.dart';
+import 'package:sensorify/helpers/socket_helper.dart';
 import 'package:sensorify/models/message_model.dart';
 import 'package:sensorify/pages/credit_page.dart';
 import 'package:sensorify/pages/record_settings_page.dart';
@@ -16,8 +17,6 @@ import 'package:sensorify/types.dart';
 import 'package:sensorify/widgets/content_box.dart';
 import 'package:sensorify/widgets/scan_dialog.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-import '../backend/file_manager.dart';
 import 'live_data_settings_page.dart';
 
 class DevicePage extends StatefulWidget {
@@ -28,10 +27,10 @@ class DevicePage extends StatefulWidget {
 }
 
 class _DevicePageState extends State<DevicePage> {
-  BluetoothManager bluetoothManager = BluetoothManager();
+  SocketHelper socket = SocketHelper();
   SensorManager sensorManager = SensorManager.instance;
   StreamController<String> messageStreamController = StreamController<String>();
-  Stream<dynamic> get messageStream => bluetoothManager.getStream();
+  Stream<dynamic> get messageStream => socket.getStream();
 
   FileManager fileManager = FileManager();
 
@@ -117,7 +116,7 @@ class _DevicePageState extends State<DevicePage> {
 
   @override
   Widget build(BuildContext context) {
-    final provider = Provider.of<DeviceStatusProvider>(context, listen: true);
+    final provider = Provider.of<SocketStatusProvider>(context, listen: true);
     double width = MediaQuery.of(context).size.width;
     double height = MediaQuery.of(context).size.height;
     return Container(
@@ -148,11 +147,6 @@ class _DevicePageState extends State<DevicePage> {
                       final address =
                           prefs.getString("deviceAddress") ?? "NULL";
                       if (address != "NULL") {
-                        print(address);
-                        if (await bluetoothManager
-                            .connectToBluetoothDevice(address)) {
-                          provider.updateConnectionStatus(true);
-                        }
                       }
                     }
                   }

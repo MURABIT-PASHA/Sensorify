@@ -3,7 +3,6 @@ import 'package:flutter_svg/svg.dart';
 import 'package:get/get_rx/src/rx_types/rx_types.dart';
 import 'package:get/get_state_manager/src/rx_flutter/rx_obx_widget.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:sensorify/backend/bluetooth_manager.dart';
 import 'package:sensorify/models/message_model.dart';
 import 'package:sensorify/models/settings_model.dart';
 import 'package:sensorify/types.dart';
@@ -18,7 +17,6 @@ class RecordSettingsPage extends StatefulWidget {
 }
 
 class _RecordSettingsPageState extends State<RecordSettingsPage> {
-  BluetoothManager bluetoothManager = BluetoothManager();
   Map<SensorType, bool> selectedSensors = {};
   int _durationDelay = 0;
   final Rx<DurationType> _durationType = DurationType.ms.obs;
@@ -207,11 +205,11 @@ class _RecordSettingsPageState extends State<RecordSettingsPage> {
                     final model = checkParameters();
                     if (model != null) {
                       if (await writeAndReadPermission()) {
-                        bluetoothManager.sendMessage(
-                          MessageModel(
-                              orderType: MessageOrderType.start,
-                              settings: model),
-                        );
+                        // bluetoothManager.sendMessage(
+                        //   MessageModel(
+                        //       orderType: MessageOrderType.start,
+                        //       settings: model),
+                        // );
                       }
                     }
                   },

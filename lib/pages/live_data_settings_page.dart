@@ -3,8 +3,6 @@ import 'package:get/get.dart';
 import 'package:sensorify/constants.dart';
 import 'package:sensorify/pages/live_data_page.dart';
 import 'package:sensorify/types.dart';
-
-import '../backend/bluetooth_manager.dart';
 import '../models/message_model.dart';
 import '../models/settings_model.dart';
 
@@ -16,7 +14,6 @@ class LiveDataSettingsPage extends StatefulWidget {
 }
 
 class _LiveDataSettingsPageState extends State<LiveDataSettingsPage> {
-  BluetoothManager bluetoothManager = BluetoothManager();
   @override
   Widget build(BuildContext context) {
     double buttonWidth = MediaQuery.of(context).size.width / 2;
@@ -72,15 +69,15 @@ class _LiveDataSettingsPageState extends State<LiveDataSettingsPage> {
 
   VoidCallback onPressed(SensorType sensorType) {
     return () {
-      bluetoothManager.sendMessage(
-        MessageModel(
-          orderType: MessageOrderType.watch,
-          settings: SettingsModel(
-              durationDelay: 500,
-              durationType: DurationType.ms,
-              selectedSensors: {sensorType: true}),
-        ),
-      ).then((value) => Get.to(() => const LiveDataPage()));
+      // bluetoothManager.sendMessage(
+      //   MessageModel(
+      //     orderType: MessageOrderType.watch,
+      //     settings: SettingsModel(
+      //         durationDelay: 500,
+      //         durationType: DurationType.ms,
+      //         selectedSensors: {sensorType: true}),
+      //   ),
+      // ).then((value) => Get.to(() => const LiveDataPage()));
     };
   }
 }

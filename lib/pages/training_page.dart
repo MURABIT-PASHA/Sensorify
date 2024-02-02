@@ -1,5 +1,5 @@
 import "package:flutter/material.dart";
-import "package:sensorify/backend/file_manager.dart";
+import "package:sensorify/helpers/file_helper.dart";
 
 class TrainingPage extends StatefulWidget {
   const TrainingPage({Key? key}) : super(key: key);

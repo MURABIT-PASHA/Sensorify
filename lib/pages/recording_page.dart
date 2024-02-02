@@ -2,13 +2,11 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:sensorify/backend/bluetooth_manager.dart';
 import 'package:sensorify/constants.dart';
+import 'package:sensorify/helpers/sensor_helper.dart';
 import 'package:sensorify/models/message_model.dart';
 import 'package:sensorify/models/settings_model.dart';
 import 'package:sensorify/types.dart';
-
-import '../backend/sensor_manager.dart';
 
 class RecordingPage extends StatefulWidget {
   final SettingsModel settings;
@@ -22,7 +20,6 @@ class _RecordingPageState extends State<RecordingPage> {
   late Timer _timer;
   final RxInt _seconds = 0.obs;
   SensorManager sensorManager = SensorManager.instance;
-  final BluetoothManager _bluetoothManager = BluetoothManager();
   List<Stream> streamData = [];
 
   @override
@@ -72,9 +69,9 @@ class _RecordingPageState extends State<RecordingPage> {
         child: Center(
           child: InkWell(
             onTap: () {
-              _bluetoothManager
-                  .sendMessage(MessageModel(orderType: MessageOrderType.stop));
-              Get.back(canPop: false);
+              // _bluetoothManager
+              //     .sendMessage(MessageModel(orderType: MessageOrderType.stop));
+              // Get.back(canPop: false);
             },
             child: Container(
               width: width / 2,
