@@ -23,7 +23,7 @@ class _ScanDialogState extends State<ScanDialog> {
 
   @override
   Widget build(BuildContext context) {
-    RxString socketUrl = "".obs;
+    RxString portNumber = "".obs;
     final SocketStatusProvider socketStatus =
         Provider.of<SocketStatusProvider>(context);
 
@@ -42,34 +42,40 @@ class _ScanDialogState extends State<ScanDialog> {
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
                 TextField(
+                  maxLength: 4,
+                  keyboardType: TextInputType.number,
                   onChanged: (value) {
-                    socketUrl.value = value;
+                    portNumber.value = value;
                   },
                   decoration: InputDecoration(
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(15),
                     ),
-                    hintText: 'Örn. https://localhost:8080',
-                    labelText: 'Url giriniz',
+                    hintText: 'Örn. 8080',
+                    labelText: 'Port numarasını giriniz',
                     labelStyle: const TextStyle(fontSize: 16),
                   ),
                   style: const TextStyle(fontSize: 14),
                   maxLines: 1,
                 ),
                 ElevatedButton(
-                  onPressed: () {
-                    if (checkValidate(socketUrl.value)) {
+                  onPressed: () async{
+                    if (checkValidate(portNumber.value)) {
                       final SocketHelper socket = SocketHelper();
-                      socket.connect(
-                        url: socketUrl.value,
-                      ).then((value){
-                        if(value){
-                          socketStatus.registerSocketAddress(socketUrl.value);
+                      // host = await SocketHelper.getHost();
+                      socket
+                          .connect(
+                        url: portNumber.value,
+                      )
+                          .then((value) {
+                        if (value) {
+                          socketStatus.registerSocketAddress(portNumber.value);
                         }
                         Get.back();
                       });
                     } else {
-                      Get.snackbar('Hata', 'Lütfen doğru bir adres giriniz');
+                      Get.snackbar(
+                          'Hata', 'Lütfen doğru bir port numarası giriniz');
                     }
                   },
                   style: ElevatedButton.styleFrom(
@@ -90,6 +96,14 @@ class _ScanDialogState extends State<ScanDialog> {
   }
 
   bool checkValidate(String value) {
-    return true;
+    if (value.length != 4) {
+      return false;
+    }
+    try {
+      int.parse(value);
+      return true;
+    } catch (e) {
+      return false;
+    }
   }
 }

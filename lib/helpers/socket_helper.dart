@@ -1,7 +1,30 @@
+import 'package:flutter/services.dart';
 import 'package:sensorify/models/message_model.dart';
 import 'package:web_socket_client/web_socket_client.dart';
 
 class SocketHelper {
+
+  static const MethodChannel _methodChannel = MethodChannel('com.murabit.akdogan/socket');
+
+  static Future<void> onRightClick() async{
+    await _methodChannel.invokeMethod('event', {"type": "rightClick"});
+  }
+  static Future<void> onDrag(double length, double degree) async{
+    await _methodChannel.invokeMethod('event', {"type": "drag", "length": length, "degree": degree});
+  }
+  static Future<void> onLeftClick() async{
+    await _methodChannel.invokeMethod('event', {"type": "leftClick"});
+  }
+  static Future<void> onOpen() async{
+    await _methodChannel.invokeMethod('event', {"type": "open"});
+  }
+  static Future<String> getHost() async{
+    return await _methodChannel.invokeMethod('getAddressInfo');
+  }
+  static Future<void> startServer() async{
+    await _methodChannel.invokeMethod('startServer');
+  }
+
   WebSocket socket = WebSocket(Uri.parse('http://localhost:8080'));
 
   void sendMessage(MessageModel messageModel) {
