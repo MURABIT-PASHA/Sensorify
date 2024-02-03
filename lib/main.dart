@@ -5,8 +5,9 @@ import 'package:get/get.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:sensorify/constants.dart';
-import 'package:sensorify/pages/bluetooth_status_page.dart';
-import 'package:sensorify/provider/device_status_provider.dart';
+import 'package:sensorify/helpers/socket_helper.dart';
+import 'package:sensorify/pages/socket_status_page.dart';
+import 'package:sensorify/provider/socket_status_provider.dart';
 import 'package:sensorify/provider/order_status_provider.dart';
 import 'package:sensorify/theme.dart';
 import 'package:sensorify/widgets/scan_dialog.dart';
@@ -47,18 +48,14 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  Rx<bool> isBluetoothAvailable = false.obs;
-  Rx<bool> isDeviceConnected = false.obs;
 
-  void startSocketIfConnectedBefore() {}
+  Future checkPermissions() async {
+    await Permission.storage.request();
+  }
 
   @override
   void initState() {
-    [
-      Permission.storage,
-    ].request().then((value) {
-      startSocketIfConnectedBefore();
-    });
+    checkPermissions();
     FlutterNativeSplash.remove();
     super.initState();
   }
@@ -67,52 +64,63 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     final socketStatus =
         Provider.of<SocketStatusProvider>(context, listen: true);
+    socketStatus.checkRegistration();
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: const SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
         systemNavigationBarColor: primaryBackgroundColor,
         systemNavigationBarIconBrightness: Brightness.light,
       ),
-      child: Obx(() {
-        socketStatus.checkRegistration();
-        return Scaffold(
-          appBar: !socketStatus.isDeviceConnected
-              ? AppBar(
-                  centerTitle: true,
-                  title: const Text("Sensorify"),
-                  actions: [
-                      IconButton(
-                        onPressed: () async {
-                          if (socketStatus.isDeviceRegistered &&
-                              socketStatus.deviceAddress != "NULL" &&
-                              socketStatus.deviceAddress != "") {
-                          } else {
-                            Get.defaultDialog(
-                              title: "Cihazları keşfet",
-                              content: ScanDialog(
-                                width: MediaQuery.of(context).size.width - 100,
-                                height:
-                                    MediaQuery.of(context).size.height * 2 / 3,
-                              ),
-                            );
-                          }
-                        },
-                        icon: Icon(Icons.watch,
-                            color: socketStatus.isDeviceConnected
-                                ? Colors.green
-                                : Colors.red),
-                      )
-                    ])
-              : null,
-          body: isBluetoothAvailable.value
-              ? socketStatus.isDeviceConnected
-                  ? const DevicePage()
-                  : const Center(
-                      child: Text("Hiçbir cihaz bağlı değil"),
-                    )
-              : const BluetoothStatusPage(),
-        );
-      }),
+      child: Scaffold(
+        appBar: AppBar(
+          centerTitle: true,
+          title: const Text("Sensorify"),
+          actions: [
+            IconButton(onPressed: ()async{
+              await socketStatus.registerSocketAddress('NULL');
+            }, icon: const Icon(Icons.watch_off, color: Colors.grey,)),
+            IconButton(
+              onPressed: () async {
+                if (socketStatus.isSocketRegistered) {
+                  if(socketStatus.isSocketConnected) {
+                    SocketHelper socketHelper = SocketHelper();
+                    socketHelper.closeConnection();
+                    socketStatus.updateConnectionStatus(false);
+                  }else{
+                    SocketHelper socketHelper = SocketHelper();
+                    socketHelper.connect(url: socketStatus.socketAddress).then((value){
+                      if(value){
+                        socketStatus.updateConnectionStatus(true);
+                      }else{
+                        Get.snackbar('Hata', 'Sokete bağlanılamadı');
+                      }
+                    });
+                  }
+                } else {
+                  Get.defaultDialog(
+                    title: "Socket URL",
+                    content: ScanDialog(
+                      width: MediaQuery.of(context).size.width - 100,
+                      height: MediaQuery.of(context).size.height * 2 / 3,
+                    ),
+                  );
+                }
+              },
+              icon: Icon(Icons.watch,
+                  color: socketStatus.isSocketConnected
+                      ? Colors.green
+                      : Colors.red),
+            )
+          ],
+        ),
+        body: socketStatus.isSocketConnected
+            ? socketStatus.isOtherDeviceConnected
+                ? const DevicePage()
+                : const Center(
+                    child: Text("Hiçbir cihaz bağlı değil"),
+                  )
+            : const SocketStatusPage(),
+      ),
     );
   }
 }

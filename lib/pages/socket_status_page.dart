@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-class BluetoothStatusPage extends StatelessWidget {
-  const BluetoothStatusPage({Key? key}) : super(key: key);
+class SocketStatusPage extends StatelessWidget {
+  const SocketStatusPage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -10,11 +10,11 @@ class BluetoothStatusPage extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: const [
         Icon(
-          Icons.bluetooth_disabled,
+          Icons.private_connectivity_outlined,
           color: Colors.grey,
           size: 100.0,
         ),
-        Text("Bluetooth ve Lokasyonu açmanız gerekmekte")
+        Text("Soket bağlantısını başlatmanız gerekmekte.")
       ],
     ));
   }

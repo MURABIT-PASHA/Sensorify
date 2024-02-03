@@ -12,7 +12,7 @@ import 'package:sensorify/pages/credit_page.dart';
 import 'package:sensorify/pages/record_settings_page.dart';
 import 'package:sensorify/pages/recording_page.dart';
 import 'package:sensorify/pages/training_page.dart';
-import 'package:sensorify/provider/device_status_provider.dart';
+import 'package:sensorify/provider/socket_status_provider.dart';
 import 'package:sensorify/types.dart';
 import 'package:sensorify/widgets/content_box.dart';
 import 'package:sensorify/widgets/scan_dialog.dart';
@@ -136,7 +136,7 @@ class _DevicePageState extends State<DevicePage> {
             actions: [
               IconButton(
                 onPressed: () async {
-                  if (provider.isDeviceRegistered == false) {
+                  if (provider.isSocketRegistered == false) {
                     Get.defaultDialog(
                         title: 'Select your device',
                         content: ScanDialog(
@@ -153,7 +153,7 @@ class _DevicePageState extends State<DevicePage> {
                 },
                 icon: Icon(
                   Icons.watch,
-                  color: provider.isDeviceConnected ? Colors.green : Colors.red,
+                  color: provider.isSocketConnected ? Colors.green : Colors.red,
                 ),
               ),
             ],
