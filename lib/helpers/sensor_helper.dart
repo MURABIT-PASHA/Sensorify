@@ -4,6 +4,7 @@ import 'package:rxdart/rxdart.dart';
 import 'package:sensorify/helpers/socket_helper.dart';
 import 'package:sensorify/models/message_model.dart';
 import 'package:sensorify/models/record_model.dart';
+import 'package:sensorify/provider/socket_status_provider.dart';
 import 'package:sensorify/types.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 
@@ -16,6 +17,7 @@ class SensorManager {
 
   static SensorManager get instance => _instance;
 
+  SocketStatusProvider status = SocketStatusProvider();
 
   StreamSubscription? _subscription;
 
@@ -84,8 +86,8 @@ class SensorManager {
             axisZ: data.z,
             timestamp: currentTime,
             save: save);
-        _socket.sendMessage(MessageModel(
-            orderType: MessageOrderType.record, record: sensorData));
+        SocketHelper.sendMessage(MessageModel(
+            orderType: MessageOrderType.record, record: sensorData), status.socketAddress);
       } else if (data is GyroscopeEvent) {
         final sensorData = RecordModel(
             initialName: "Gyroscope$initialTimestamp",
@@ -95,8 +97,8 @@ class SensorManager {
             axisZ: data.z,
             timestamp: currentTime,
             save: save);
-        _socket.sendMessage(MessageModel(
-            orderType: MessageOrderType.record, record: sensorData));
+        SocketHelper.sendMessage(MessageModel(
+            orderType: MessageOrderType.record, record: sensorData), status.socketAddress);
       } else {
         final sensorData = RecordModel(
             initialName: "Magnetometer$initialTimestamp",
@@ -106,8 +108,8 @@ class SensorManager {
             axisZ: data.z,
             timestamp: currentTime,
             save: save);
-        _socket.sendMessage(MessageModel(
-            orderType: MessageOrderType.record, record: sensorData));
+        SocketHelper.sendMessage(MessageModel(
+            orderType: MessageOrderType.record, record: sensorData), status.socketAddress);
       }
     });
   }

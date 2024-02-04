@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/services.dart';
 import 'package:sensorify/models/message_model.dart';
 import 'package:web_socket_client/web_socket_client.dart';
@@ -27,8 +29,9 @@ class SocketHelper {
 
   WebSocket socket = WebSocket(Uri.parse('http://localhost:8080'));
 
-  void sendMessage(MessageModel messageModel) {
-    socket.send('ping');
+  static Future<void> sendMessage(MessageModel message, String address) async{
+    final data = utf8.encode(jsonEncode(message.toJson()));
+    await _methodChannel.invokeMethod('sendMessage', {"message": data, "address": address});
   }
 
   getStream() {

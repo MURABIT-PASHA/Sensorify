@@ -1,9 +1,13 @@
+import 'dart:io';
 import 'package:dotted_border/dotted_border.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:provider/provider.dart';
+import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:sensorify/helpers/socket_helper.dart';
+import 'package:sensorify/models/message_model.dart';
 import 'package:sensorify/provider/socket_status_provider.dart';
+import 'package:sensorify/types.dart';
 
 class ScanDialog extends StatefulWidget {
   final double width;
@@ -16,6 +20,22 @@ class ScanDialog extends StatefulWidget {
 }
 
 class _ScanDialogState extends State<ScanDialog> {
+  final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
+  Barcode? result;
+  QRViewController? controller;
+
+  // In order to get hot reload to work we need to pause the camera if the platform
+  // is android, or resume the camera if the platform is iOS.
+  @override
+  void reassemble() {
+    super.reassemble();
+    if (Platform.isAndroid) {
+      controller!.pauseCamera();
+    } else if (Platform.isIOS) {
+      controller!.resumeCamera();
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -23,10 +43,6 @@ class _ScanDialogState extends State<ScanDialog> {
 
   @override
   Widget build(BuildContext context) {
-    RxString portNumber = "".obs;
-    final SocketStatusProvider socketStatus =
-        Provider.of<SocketStatusProvider>(context);
-
     return DottedBorder(
       borderType: BorderType.RRect,
       radius: const Radius.circular(12),
@@ -41,51 +57,21 @@ class _ScanDialogState extends State<ScanDialog> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                TextField(
-                  maxLength: 4,
-                  keyboardType: TextInputType.number,
-                  onChanged: (value) {
-                    portNumber.value = value;
-                  },
-                  decoration: InputDecoration(
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                    hintText: 'Örn. 8080',
-                    labelText: 'Port numarasını giriniz',
-                    labelStyle: const TextStyle(fontSize: 16),
+                Expanded(
+                  flex: 5,
+                  child: QRView(
+                    key: qrKey,
+                    onQRViewCreated: _onQRViewCreated,
                   ),
-                  style: const TextStyle(fontSize: 14),
-                  maxLines: 1,
                 ),
-                ElevatedButton(
-                  onPressed: () async{
-                    if (checkValidate(portNumber.value)) {
-                      final SocketHelper socket = SocketHelper();
-                      // host = await SocketHelper.getHost();
-                      socket
-                          .connect(
-                        url: portNumber.value,
-                      )
-                          .then((value) {
-                        if (value) {
-                          socketStatus.registerSocketAddress(portNumber.value);
-                        }
-                        Get.back();
-                      });
-                    } else {
-                      Get.snackbar(
-                          'Hata', 'Lütfen doğru bir port numarası giriniz');
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                    minimumSize: const Size(double.infinity, 50),
-                    maximumSize: const Size(double.infinity, 56),
+                Expanded(
+                  flex: 1,
+                  child: Center(
+                    child: (result != null)
+                        ? Text(
+                            'Barcode Type: ${describeEnum(result!.format)}   Data: ${result!.code}')
+                        : Container(),
                   ),
-                  child: const Text('Kaydet'),
                 ),
               ],
             ),
@@ -95,15 +81,28 @@ class _ScanDialogState extends State<ScanDialog> {
     );
   }
 
-  bool checkValidate(String value) {
-    if (value.length != 4) {
-      return false;
-    }
-    try {
-      int.parse(value);
-      return true;
-    } catch (e) {
-      return false;
-    }
+  void _onQRViewCreated(QRViewController controller) {
+    this.controller = controller;
+    controller.scannedDataStream.listen((scanData) {
+      setState(() {
+        result = scanData;
+        if (result != null) {
+          SocketStatusProvider socketStatusProvider = SocketStatusProvider();
+          SocketHelper.sendMessage(
+                  MessageModel(orderType: MessageOrderType.start),
+                  result!.code ?? "NULL")
+              .then((value) => socketStatusProvider
+                  .registerSocketAddress(result!.code ?? "NULL"),
+          );
+          Get.back();
+        }
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    controller?.dispose();
+    super.dispose();
   }
 }

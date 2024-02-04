@@ -24,10 +24,11 @@ public class MainActivity extends FlutterActivity {
         new MethodChannel(flutterEngine.getDartExecutor().getBinaryMessenger(), METHOD_CHANNEL)
                 .setMethodCallHandler(
                         (call, result) -> {
-                            if (call.method.equals("event")) {
-                                String data = call.arguments.toString();
-                                LOGGER.info(data);
-                                socketManager.sendMessage(data);
+                            if (call.method.equals("sendMessage")) {
+                                String message = call.argument("message").toString();
+                                String address = call.argument("address");
+                                LOGGER.info(message);
+                                socketManager.sendMessage(address, message);
                                 result.success("Success");
                             } else if (call.method.equals("getAddressInfo")) {
                                 result.success(socketManager.getIPConfig());

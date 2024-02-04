@@ -4,6 +4,7 @@ import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:get/get.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 import 'package:sensorify/constants.dart';
 import 'package:sensorify/helpers/socket_helper.dart';
 import 'package:sensorify/pages/device_page.dart';
@@ -19,7 +20,6 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-
   Future checkPermissions() async {
     await Permission.storage.request();
   }
@@ -34,7 +34,7 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     final socketStatus =
-    Provider.of<SocketStatusProvider>(context, listen: true);
+        Provider.of<SocketStatusProvider>(context, listen: true);
     socketStatus.checkRegistration();
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: const SystemUiOverlayStyle(
@@ -44,25 +44,76 @@ class _HomePageState extends State<HomePage> {
       ),
       child: Scaffold(
         appBar: AppBar(
+          leading: IconButton(
+              icon: Icon(Icons.qr_code_scanner),
+              onPressed: () {
+                SocketHelper.startServer().then((value) {
+                  SocketHelper.getHost().then((host) {
+                    showDialog(
+                        context: context,
+                        builder: (builder) {
+                          double width = MediaQuery.of(context).size.width;
+                          double height = MediaQuery.of(context).size.height;
+                          return AlertDialog(
+                            backgroundColor: secondaryForegroundColor,
+                            titlePadding: EdgeInsets.only(top: 10),
+                            insetPadding: EdgeInsets.all(15),
+                            contentPadding: EdgeInsets.only(bottom: 10),
+                            title: SizedBox(
+                              width: width - 20,
+                              height: 20,
+                              child: Text(
+                                "Telefonu bağla",
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                    fontSize: 10, color: primaryBackgroundColor),
+                                maxLines: 1,
+                              ),
+                            ),
+                            content: Container(
+                              width: width - 20,
+                              height: width - 20,
+                              alignment: Alignment.center,
+                              child: host.isNotEmpty
+                                  ? QrImageView(
+                                      // eyeStyle: QrEyeStyle(eyeShape: QrEyeShape.square, color: secondaryForegroundColor),
+                                      //  dataModuleStyle: QrDataModuleStyle(dataModuleShape: QrDataModuleShape.square, color: secondaryForegroundColor),
+                                      data: host,
+                                      version: QrVersions.auto,
+                                    )
+                                  : CircularProgressIndicator(),
+                            ),
+                          );
+                        });
+                  });
+                });
+              }),
           centerTitle: true,
           title: const Text("Sensorify"),
           actions: [
-            IconButton(onPressed: ()async{
-              await socketStatus.registerSocketAddress('NULL');
-            }, icon: const Icon(Icons.watch_off, color: Colors.grey,)),
+            IconButton(
+                onPressed: () async {
+                  await socketStatus.registerSocketAddress('NULL');
+                },
+                icon: const Icon(
+                  Icons.watch_off,
+                  color: Colors.grey,
+                )),
             IconButton(
               onPressed: () async {
                 if (socketStatus.isSocketRegistered) {
-                  if(socketStatus.isSocketConnected) {
+                  if (socketStatus.isSocketConnected) {
                     SocketHelper socketHelper = SocketHelper();
                     socketHelper.closeConnection();
                     socketStatus.updateConnectionStatus(false);
-                  }else{
+                  } else {
                     SocketHelper socketHelper = SocketHelper();
-                    socketHelper.connect(url: socketStatus.socketAddress).then((value){
-                      if(value){
+                    socketHelper
+                        .connect(url: socketStatus.socketAddress)
+                        .then((value) {
+                      if (value) {
                         socketStatus.updateConnectionStatus(true);
-                      }else{
+                      } else {
                         Get.snackbar('Hata', 'Sokete bağlanılamadı');
                       }
                     });
@@ -86,10 +137,10 @@ class _HomePageState extends State<HomePage> {
         ),
         body: socketStatus.isSocketConnected
             ? socketStatus.isOtherDeviceConnected
-            ? const DevicePage()
-            : const Center(
-          child: Text("Hiçbir cihaz bağlı değil"),
-        )
+                ? const DevicePage()
+                : const Center(
+                    child: Text("Hiçbir cihaz bağlı değil"),
+                  )
             : const SocketStatusPage(),
       ),
     );

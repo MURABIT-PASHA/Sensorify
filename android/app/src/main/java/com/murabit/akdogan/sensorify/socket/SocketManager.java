@@ -18,12 +18,12 @@ public class SocketManager {
 
     private static final int PORT = 7800;
 
-    public void sendMessage(String message){
+    public void sendMessage(String address, String message){
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
                 try {
-                    mSocket = new Socket("192.168.1.38", 7800);
+                    mSocket = new Socket(address, 7800);
                     mPrintWriter = new PrintWriter(mSocket.getOutputStream());
                     mPrintWriter.write(message);
                     mPrintWriter.flush();
@@ -41,7 +41,7 @@ public class SocketManager {
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
-                try (ServerSocket serverSocket = new ServerSocket(PORT, 0, InetAddress.getByName("192.168.1.38"))) {
+                try (ServerSocket serverSocket = new ServerSocket(PORT, 0, InetAddress.getByName(getIPConfig()))) {
                     System.out.println("Server başlatıldı, port: " + PORT);
 
                     while (true) {

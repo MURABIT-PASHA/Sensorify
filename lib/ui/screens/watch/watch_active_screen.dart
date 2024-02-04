@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:sensorify/ui/screens/watch/watch_splash_screen.dart';
+import 'package:sensorify/ui/screens/watch/watch_home_screen.dart';
 import '../../theme/gradients/time_gradient.dart';
 import '../screen_controller.dart';
 
@@ -13,7 +13,7 @@ class WatchActiveScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.black54,
       body: TimeGradient(
-        child: WatchSplashScreen(
+        child: WatchHomeScreen(
           state: state,
         ),
       ),

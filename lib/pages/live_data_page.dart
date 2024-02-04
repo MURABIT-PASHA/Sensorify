@@ -6,6 +6,7 @@ import 'package:real_time_chart/real_time_chart.dart';
 import 'package:sensorify/constants.dart';
 import 'package:sensorify/helpers/socket_helper.dart';
 import 'package:sensorify/models/message_model.dart';
+import 'package:sensorify/provider/socket_status_provider.dart';
 
 import '../types.dart';
 
@@ -18,6 +19,7 @@ class LiveDataPage extends StatefulWidget {
 
 class _LiveDataPageState extends State<LiveDataPage> {
   SocketHelper socket = SocketHelper();
+  SocketStatusProvider status = SocketStatusProvider();
   Stream<dynamic> get messageStream => socket.getStream();
   final StreamController<dynamic> _bluetoothStreamController =
       StreamController<dynamic>();
@@ -55,8 +57,8 @@ class _LiveDataPageState extends State<LiveDataPage> {
     _axisXStreamController.close();
     _axisYStreamController.close();
     _axisZStreamController.close();
-    socket
-        .sendMessage(MessageModel(orderType: MessageOrderType.stop));
+    SocketHelper
+        .sendMessage(MessageModel(orderType: MessageOrderType.stop), status.socketAddress);
     super.dispose();
   }
 
