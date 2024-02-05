@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:sensorify/ui/screens/watch/watch_sensor_timer.dart';
+import 'package:sensorify/ui/pages/watch/watch_sensor_timer.dart';
 import 'package:sensorify/widgets/frosted_glass_box.dart';
 
 class WatchSaveSensorScreen extends StatefulWidget {

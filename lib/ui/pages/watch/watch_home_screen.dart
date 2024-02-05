@@ -1,20 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
-import 'package:get/get.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:sensorify/constants.dart';
 import 'package:sensorify/helpers/socket_helper.dart';
-import 'package:sensorify/ui/screens/screen_controller.dart';
+import 'package:sensorify/ui/pages/screen_controller.dart';
 
-class WatchHomeScreen extends StatefulWidget {
+class HomePage extends StatefulWidget {
   final ScreenController state;
-  const WatchHomeScreen({Key? key, required this.state}) : super(key: key);
+  const HomePage({Key? key, required this.state}) : super(key: key);
 
   @override
-  State<WatchHomeScreen> createState() => _WatchHomeScreenState();
+  State<HomePage> createState() => _HomePageState();
 }
 
-class _WatchHomeScreenState extends State<WatchHomeScreen> {
+class _HomePageState extends State<HomePage> {
 
   Future startServer() async{
     await SocketHelper.startServer();
@@ -35,7 +34,7 @@ class _WatchHomeScreenState extends State<WatchHomeScreen> {
       child: Center(
         child: IconButton(
           onPressed: () async {
-            String host = await SocketHelper.getHost();
+            String host = await SocketHelper.getHostAddress();
             if(mounted) {
               showDialog(
               context: context,

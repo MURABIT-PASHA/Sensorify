@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:sensorify/ui/screens/phone/home_page.dart';
-import 'package:sensorify/ui/screens/screen_controller.dart';
+import 'package:sensorify/ui/pages/phone/home_page.dart';
+import 'package:sensorify/ui/pages/screen_controller.dart';
 
 class PhoneView extends StatelessWidget {
   final ScreenController state;

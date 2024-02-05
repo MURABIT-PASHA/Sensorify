@@ -20,6 +20,9 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  SocketHelper socket = SocketHelper();
+  Stream<dynamic> get messageStream => socket.getStream();
+
   Future checkPermissions() async {
     await Permission.storage.request();
   }
@@ -45,10 +48,13 @@ class _HomePageState extends State<HomePage> {
       child: Scaffold(
         appBar: AppBar(
           leading: IconButton(
-              icon: Icon(Icons.qr_code_scanner),
+              icon: const Icon(Icons.qr_code_scanner),
               onPressed: () {
                 SocketHelper.startServer().then((value) {
-                  SocketHelper.getHost().then((host) {
+                  messageStream.listen((message) {
+                    print(message);
+                  });
+                  SocketHelper.getHostAddress().then((host) {
                     showDialog(
                         context: context,
                         builder: (builder) {
@@ -66,7 +72,8 @@ class _HomePageState extends State<HomePage> {
                                 "Telefonu bağla",
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
-                                    fontSize: 10, color: primaryBackgroundColor),
+                                    fontSize: 10,
+                                    color: primaryBackgroundColor),
                                 maxLines: 1,
                               ),
                             ),
@@ -92,31 +99,22 @@ class _HomePageState extends State<HomePage> {
           title: const Text("Sensorify"),
           actions: [
             IconButton(
-                onPressed: () async {
-                  await socketStatus.registerSocketAddress('NULL');
-                },
-                icon: const Icon(
-                  Icons.watch_off,
-                  color: Colors.grey,
-                )),
+              onPressed: () async {
+                await socketStatus.registerSocketAddress('NULL');
+                socketStatus.updateConnectionStatus(false);
+              },
+              icon: const Icon(
+                Icons.watch_off,
+                color: Colors.grey,
+              ),
+            ),
             IconButton(
               onPressed: () async {
                 if (socketStatus.isSocketRegistered) {
                   if (socketStatus.isSocketConnected) {
-                    SocketHelper socketHelper = SocketHelper();
-                    socketHelper.closeConnection();
                     socketStatus.updateConnectionStatus(false);
                   } else {
-                    SocketHelper socketHelper = SocketHelper();
-                    socketHelper
-                        .connect(url: socketStatus.socketAddress)
-                        .then((value) {
-                      if (value) {
-                        socketStatus.updateConnectionStatus(true);
-                      } else {
-                        Get.snackbar('Hata', 'Sokete bağlanılamadı');
-                      }
-                    });
+                    socketStatus.updateConnectionStatus(true);
                   }
                 } else {
                   Get.defaultDialog(

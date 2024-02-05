@@ -1,4 +1,4 @@
-package com.murabit.akdogan.sensorify.socket;
+package com.murabit.akdogan.sensorify;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -41,16 +41,17 @@ public class SocketManager {
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
+                byte[] buffer = new byte[1024];
+                int bytes;
                 try (ServerSocket serverSocket = new ServerSocket(PORT, 0, InetAddress.getByName(getIPConfig()))) {
                     System.out.println("Server başlatıldı, port: " + PORT);
 
                     while (true) {
                         try (Socket clientSocket = serverSocket.accept();
                              BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()))) {
-                            String inputLine;
-                            while ((inputLine = in.readLine()) != null) {
-                                LOGGER.info("Gelen satır:" + inputLine);
-                            }
+                            String incomingMessage = in.readLine();
+                            LOGGER.info(incomingMessage);
+                            MainActivity.sendDataToFlutter(incomingMessage);
                         } catch (IOException e) {
                             LOGGER.info(e.getMessage());
                         }

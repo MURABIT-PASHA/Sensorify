@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import '../screen_controller.dart';
+import 'screen_controller.dart';
 import 'package:wear/wear.dart';
-import 'watch_active_screen.dart';
-import 'watch_ambient_screen.dart';
+import 'watch/watch_active_screen.dart';
+import 'watch/watch_ambient_screen.dart';
 
 class WatchView extends StatelessWidget {
   final ScreenController state;
@@ -16,8 +16,8 @@ class WatchView extends StatelessWidget {
         return AmbientMode(
           builder: (context, mode, child) {
             return mode == WearMode.active
-                ? WatchActiveScreen(state)
-                : WatchAmbientScreen(state);
+                ? ActivePage(state)
+                : AmbientPage(state);
           },
         );
       },
