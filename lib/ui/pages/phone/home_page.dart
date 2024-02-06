@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -13,7 +14,6 @@ import 'package:sensorify/models/message_model.dart';
 import 'package:sensorify/ui/pages/phone/device_page.dart';
 import 'package:sensorify/provider/socket_status_provider.dart';
 import 'package:sensorify/types.dart';
-import 'package:sensorify/ui/pages/phone/listener_page.dart';
 import 'package:sensorify/widgets/scan_dialog.dart';
 
 class HomePage extends StatefulWidget {
@@ -25,7 +25,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   SocketHelper socket = SocketHelper();
-  Stream<dynamic> get messageStream => socket.getStream();
+  late StreamSubscription messageSubscription;
 
   Future checkPermissions() async {
     await Permission.storage.request();
@@ -35,6 +35,12 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     checkPermissions();
     FlutterNativeSplash.remove();
+    SocketHelper.startServer().then(
+        (value) => messageSubscription = socket.getStream().listen((message) {
+              MessageModel model = MessageModel.fromJson(json.decode(message));
+              handleMessage(model);
+            }));
+
     super.initState();
   }
 
@@ -50,29 +56,6 @@ class _HomePageState extends State<HomePage> {
         systemNavigationBarIconBrightness: Brightness.light,
       ),
       child: Builder(builder: (context) {
-        SocketHelper.startServer().then((value) {
-          messageStream.listen((message) {
-            MessageModel model = MessageModel.fromJson(json.decode(message));
-            switch (model.orderType) {
-              case MessageOrderType.start:
-                return;
-              case MessageOrderType.stop:
-                return;
-              case MessageOrderType.record:
-                return;
-              case MessageOrderType.watch:
-                return;
-              case MessageOrderType.connect:
-                String hostAddress =
-                    model.connectionSettings?.hostAddress ?? "NULL";
-                if (hostAddress != "NULL") {
-                  socketStatus.registerSocketAddress(hostAddress);
-                  socketStatus.updateConnectionStatus(true);
-                  Get.offAll(const ListenerPage());
-                }
-            }
-          });
-        });
         if (socketStatus.isSocketConnected) {
           return DevicePage();
         }
@@ -172,5 +155,26 @@ class _HomePageState extends State<HomePage> {
         );
       }),
     );
+  }
+
+  void handleMessage(MessageModel model) {
+    final socketStatus =
+    Provider.of<SocketStatusProvider>(context, listen: false);
+    switch (model.orderType) {
+      case MessageOrderType.start:
+        return;
+      case MessageOrderType.stop:
+        return;
+      case MessageOrderType.record:
+        return;
+      case MessageOrderType.watch:
+        return;
+      case MessageOrderType.connect:
+        String hostAddress = model.connectionSettings?.hostAddress ?? "NULL";
+        if (hostAddress != "NULL") {
+          socketStatus.registerSocketAddress(hostAddress);
+          socketStatus.updateConnectionStatus(true);
+        }
+    }
   }
 }

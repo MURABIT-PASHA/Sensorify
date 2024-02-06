@@ -28,10 +28,23 @@ class DevicePage extends StatefulWidget {
 class _DevicePageState extends State<DevicePage> {
   SocketHelper socket = SocketHelper();
   SensorManager sensorManager = SensorManager.instance;
-  StreamController<String> messageStreamController = StreamController<String>();
-  Stream<dynamic> get messageStream => socket.getStream();
-
   FileManager fileManager = FileManager();
+  late StreamSubscription messageSubscription;
+
+  @override
+  void initState() {
+    super.initState();
+    messageSubscription = socket.getStream().listen((message) {
+      MessageModel model = MessageModel.fromJson(json.decode(message));
+      handleMessage(model);
+    });
+  }
+
+  @override
+  void dispose() {
+    messageSubscription.cancel();
+    super.dispose();
+  }
 
   List<Map<String, dynamic>> gridChildList = [
     {
@@ -57,23 +70,11 @@ class _DevicePageState extends State<DevicePage> {
   ];
 
   @override
-  void initState() {
-
-    startListener();
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    messageStreamController.close();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     final provider = Provider.of<SocketStatusProvider>(context, listen: true);
     double width = MediaQuery.of(context).size.width;
     double height = MediaQuery.of(context).size.height;
+
     return Scaffold(
       body: Container(
         width: width,
@@ -91,9 +92,8 @@ class _DevicePageState extends State<DevicePage> {
               title: const Text("Sensorify"),
               actions: [
                 IconButton(
-                  onPressed: () async {
+                  onPressed: () {
                     if (provider.isSocketConnected) {
-                      await provider.registerSocketAddress("NULL");
                       provider.updateConnectionStatus(false);
                     } else {
                       Get.defaultDialog(
@@ -145,57 +145,57 @@ class _DevicePageState extends State<DevicePage> {
       ),
     );
   }
-  void startListener() {
+
+  void handleMessage(MessageModel model) {
     final socketStatus =
-    Provider.of<SocketStatusProvider>(context, listen: false);
-    messageStream.listen((message) {
-      MessageModel model = MessageModel.fromJson(json.decode(message));
-      switch (model.orderType) {
-        case MessageOrderType.start:
-          final settings = model.recordSettings;
-          if (settings != null) {
-            Get.to(() => RecordingPage(settings: settings));
+        Provider.of<SocketStatusProvider>(context, listen: false);
+    switch (model.orderType) {
+      case MessageOrderType.start:
+        final settings = model.recordSettings;
+        if (settings != null) {
+          Get.to(() => RecordingPage(settings: settings));
+        }
+        break;
+      case MessageOrderType.stop:
+        fileManager.saveFileToDownloadsDirectory().then((value) {
+          if (value) {
+            Get.snackbar("Başarılı", "Kayıtlar indirildi");
+          } else {
+            Get.snackbar("Hata", "Kayıt izni bulunamadı");
           }
-          break;
-        case MessageOrderType.stop:
-          sensorManager.cancelSubscription();
-          fileManager.saveFileToDownloadsDirectory().then((value) {
+        });
+        break;
+      case MessageOrderType.record:
+        final record = model.record;
+        if (record != null) {
+          if (record.save) {
+            fileManager.saveRecord(record).then((value) {});
+          }
+        }
+        break;
+      case MessageOrderType.watch:
+        final settings = model.recordSettings;
+        if (settings != null) {
+          settings.selectedSensors.forEach((key, value) {
             if (value) {
-              Get.snackbar("Başarılı", "Kayıtlar indirildi");
-            } else {
-              Get.snackbar("Hata", "Kayıt izni bulunamadı");
+              final streamData = sensorManager.getStreamData(key);
+              sensorManager.sendData(
+                hostAddress: socketStatus.socketAddress,
+                initialTimestamp: DateTime.now().millisecondsSinceEpoch,
+                duration: const Duration(milliseconds: 500),
+                streamData: [streamData],
+                save: false,
+              );
             }
           });
-          break;
-        case MessageOrderType.record:
-          final record = model.record;
-          if (record != null) {
-            if (record.save) {
-              fileManager.saveRecord(record).then((value) {});
-            }
-          }
-          break;
-        case MessageOrderType.watch:
-          final settings = model.recordSettings;
-          if (settings != null) {
-            settings.selectedSensors.forEach((key, value) {
-              if (value) {
-                final streamData = sensorManager.getStreamData(key);
-                sensorManager.sendData(
-                  hostAddress: socketStatus.socketAddress,
-                  initialTimestamp: DateTime.now().millisecondsSinceEpoch,
-                  duration: const Duration(milliseconds: 500),
-                  streamData: [streamData],
-                  save: false,
-                );
-              }
-            });
-          }
-          break;
-        case MessageOrderType.connect:
+        } else {
+          print("İPTALLLL");
+          sensorManager.cancelSubscription();
+        }
+        break;
+      case MessageOrderType.connect:
         // TODO: Handle this case.
-          break;
-      }
-    });
+        break;
+    }
   }
 }

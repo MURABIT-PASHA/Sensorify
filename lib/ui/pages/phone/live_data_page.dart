@@ -2,13 +2,14 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:real_time_chart/real_time_chart.dart';
 import 'package:sensorify/constants.dart';
 import 'package:sensorify/helpers/socket_helper.dart';
 import 'package:sensorify/models/message_model.dart';
 import 'package:sensorify/provider/socket_status_provider.dart';
 
-import '../../../types.dart';
+import 'package:sensorify/types.dart';
 
 class LiveDataPage extends StatefulWidget {
   const LiveDataPage({Key? key}) : super(key: key);
@@ -19,18 +20,21 @@ class LiveDataPage extends StatefulWidget {
 
 class _LiveDataPageState extends State<LiveDataPage> {
   SocketHelper socket = SocketHelper();
-  SocketStatusProvider status = SocketStatusProvider();
   Stream<dynamic> get messageStream => socket.getStream();
   final StreamController<dynamic> _socketStreamController =
       StreamController<dynamic>();
-  final StreamController<double> _axisXStreamController = StreamController<double>();
-  final StreamController<double> _axisYStreamController = StreamController<double>();
-  final StreamController<double> _axisZStreamController = StreamController<double>();
+  final StreamController<double> _axisXStreamController =
+      StreamController<double>();
+  final StreamController<double> _axisYStreamController =
+      StreamController<double>();
+  final StreamController<double> _axisZStreamController =
+      StreamController<double>();
   final double growth = 5;
+  late StreamSubscription liveDataSubscription;
+  late SocketStatusProvider socketStatusProvider;
 
   void startListener() {
-    print("Listener");
-    socket.getStream().listen((message) {
+    liveDataSubscription = socket.getStream().listen((message) {
       MessageModel model = MessageModel.fromJson(json.decode(message));
       if (model.orderType == MessageOrderType.record) {
         final record = model.record;
@@ -48,18 +52,23 @@ class _LiveDataPageState extends State<LiveDataPage> {
 
   @override
   void initState() {
+    socketStatusProvider = Provider.of<SocketStatusProvider>(context, listen: false); // Provider'ı burada alın
     startListener();
     super.initState();
   }
 
   @override
   void dispose() {
-    _socketStreamController.close();
-    _axisXStreamController.close();
-    _axisYStreamController.close();
-    _axisZStreamController.close();
-    SocketHelper
-        .sendMessage(MessageModel(orderType: MessageOrderType.watch), status.socketAddress);
+    SocketHelper.sendMessage(MessageModel(orderType: MessageOrderType.watch),
+            socketStatusProvider.socketAddress)
+        .then((value) {
+      _socketStreamController.close();
+      _axisXStreamController.close();
+      _axisYStreamController.close();
+      _axisZStreamController.close();
+      liveDataSubscription.cancel();
+    });
+
     super.dispose();
   }
 
@@ -80,8 +89,8 @@ class _LiveDataPageState extends State<LiveDataPage> {
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
             SizedBox(
-              width: width -10,
-              height: width -10,
+              width: width - 10,
+              height: width - 10,
               child: StreamBuilder<dynamic>(
                 stream: _socketStreamController.stream,
                 builder: (context, snapshot) {
@@ -130,9 +139,12 @@ class _LiveDataPageState extends State<LiveDataPage> {
               height: 90,
               child: Column(
                 children: [
-                  getInfoBox(width: width, color: xAxisColor, title: "X Ekseni"),
-                  getInfoBox(width: width, color: yAxisColor, title: "Y Ekseni"),
-                  getInfoBox(width: width, color: zAxisColor, title: "Z Ekseni"),
+                  getInfoBox(
+                      width: width, color: xAxisColor, title: "X Ekseni"),
+                  getInfoBox(
+                      width: width, color: yAxisColor, title: "Y Ekseni"),
+                  getInfoBox(
+                      width: width, color: zAxisColor, title: "Z Ekseni"),
                 ],
               ),
             )
@@ -141,7 +153,12 @@ class _LiveDataPageState extends State<LiveDataPage> {
       ),
     );
   }
-  Widget getInfoBox({double height = 30, required double width, required Color color, required String title}){
+
+  Widget getInfoBox(
+      {double height = 30,
+      required double width,
+      required Color color,
+      required String title}) {
     const double spacing = 10;
     return SizedBox(
       width: width - spacing,
@@ -158,7 +175,11 @@ class _LiveDataPageState extends State<LiveDataPage> {
             height: height,
             padding: const EdgeInsets.only(left: 20),
             alignment: Alignment.centerLeft,
-            child: Text(title, style: const TextStyle(color: Colors.white, overflow: TextOverflow.ellipsis),),
+            child: Text(
+              title,
+              style: const TextStyle(
+                  color: Colors.white, overflow: TextOverflow.ellipsis),
+            ),
           ),
         ],
       ),

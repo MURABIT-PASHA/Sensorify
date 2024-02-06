@@ -4,7 +4,6 @@ import 'package:rxdart/rxdart.dart';
 import 'package:sensorify/helpers/socket_helper.dart';
 import 'package:sensorify/models/message_model.dart';
 import 'package:sensorify/models/record_model.dart';
-import 'package:sensorify/provider/socket_status_provider.dart';
 import 'package:sensorify/types.dart';
 import 'package:sensors_plus/sensors_plus.dart';
 
@@ -114,7 +113,7 @@ class SensorManager {
     });
   }
 
-  Future cancelSubscription() async {
-    await _subscription?.cancel();
+  void cancelSubscription() {
+    _subscription?.cancel();
   }
 }

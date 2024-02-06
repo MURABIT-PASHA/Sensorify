@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:get/get_rx/src/rx_types/rx_types.dart';
-import 'package:get/get_state_manager/src/rx_flutter/rx_obx_widget.dart';
+import 'package:get/get.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:provider/provider.dart';
+import 'package:sensorify/helpers/socket_helper.dart';
+import 'package:sensorify/models/message_model.dart';
 import 'package:sensorify/models/record_settings_model.dart';
+import 'package:sensorify/provider/socket_status_provider.dart';
 import 'package:sensorify/types.dart';
+import 'package:sensorify/ui/pages/phone/record_listener_page.dart';
 import 'package:sensorify/widgets/frosted_glass_box.dart';
 
 class RecordSettingsPage extends StatefulWidget {
@@ -61,6 +65,8 @@ class _RecordSettingsPageState extends State<RecordSettingsPage> {
   Widget build(BuildContext context) {
     double height = MediaQuery.of(context).size.height - 100;
     double width = MediaQuery.of(context).size.width;
+    final socketStatus =
+        Provider.of<SocketStatusProvider>(context, listen: false);
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
@@ -203,11 +209,11 @@ class _RecordSettingsPageState extends State<RecordSettingsPage> {
                     final model = checkParameters();
                     if (model != null) {
                       if (await writeAndReadPermission()) {
-                        // bluetoothManager.sendMessage(
-                        //   MessageModel(
-                        //       orderType: MessageOrderType.start,
-                        //       settings: model),
-                        // );
+                        SocketHelper.sendMessage(
+                            MessageModel(
+                                orderType: MessageOrderType.start,
+                                recordSettings: model),
+                            socketStatus.socketAddress).then((value) => Get.to(const RecordListenerPage()));
                       }
                     }
                   },

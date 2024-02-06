@@ -1,63 +1,47 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:provider/provider.dart';
 import 'package:sensorify/constants.dart';
-import 'package:sensorify/helpers/sensor_helper.dart';
+import 'package:sensorify/helpers/file_helper.dart';
 import 'package:sensorify/helpers/socket_helper.dart';
 import 'package:sensorify/models/message_model.dart';
-import 'package:sensorify/models/record_settings_model.dart';
 import 'package:sensorify/provider/socket_status_provider.dart';
 import 'package:sensorify/types.dart';
+import 'package:sensorify/ui/pages/phone/device_page.dart';
 
-class RecordingPage extends StatefulWidget {
-  final RecordSettings settings;
-  const RecordingPage({Key? key, required this.settings}) : super(key: key);
+class RecordListenerPage extends StatefulWidget {
+  const RecordListenerPage({Key? key}) : super(key: key);
 
   @override
-  State<RecordingPage> createState() => _RecordingPageState();
+  State<RecordListenerPage> createState() => _RecordListenerPageState();
 }
 
-class _RecordingPageState extends State<RecordingPage> {
+class _RecordListenerPageState extends State<RecordListenerPage> {
   late Timer _timer;
   final RxInt _seconds = 0.obs;
-  SensorManager sensorManager = SensorManager.instance;
-  List<Stream> streamData = [];
+  late StreamSubscription messageSubscription;
+  SocketHelper socket = SocketHelper();
+  FileManager fileManager = FileManager();
 
   @override
   void initState() {
-    final socketStatus =
-    Provider.of<SocketStatusProvider>(context, listen: false);
-    final int initialTimestamp = DateTime.now().millisecondsSinceEpoch;
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       _seconds.value++;
     });
-    widget.settings.selectedSensors.forEach((key, value) {
-      if (value) {
-        streamData.add(sensorManager.getStreamData(key));
-      }
+    messageSubscription = socket.getStream().listen((message) {
+      MessageModel model = MessageModel.fromJson(json.decode(message));
+      handleMessage(model);
     });
-    if (widget.settings.durationType.name == "ms") {
-      sensorManager.sendData(
-        hostAddress: socketStatus.socketAddress,
-          initialTimestamp: initialTimestamp,
-          duration: Duration(milliseconds: widget.settings.durationDelay),
-          streamData: streamData);
-    } else {
-      sensorManager.sendData(
-        hostAddress: socketStatus.socketAddress,
-          initialTimestamp: initialTimestamp,
-          duration: Duration(seconds: widget.settings.durationDelay),
-          streamData: streamData);
-    }
     super.initState();
   }
 
   @override
   void dispose() {
     _timer.cancel();
-    sensorManager.cancelSubscription();
+    messageSubscription.cancel();
     super.dispose();
   }
 
@@ -69,7 +53,8 @@ class _RecordingPageState extends State<RecordingPage> {
 
   @override
   Widget build(BuildContext context) {
-    final socketStatus = Provider.of<SocketStatusProvider>(context, listen: false);
+    final socketStatus =
+        Provider.of<SocketStatusProvider>(context, listen: false);
     double width = MediaQuery.of(context).size.width;
     return Scaffold(
       body: Container(
@@ -77,8 +62,9 @@ class _RecordingPageState extends State<RecordingPage> {
         child: Center(
           child: InkWell(
             onTap: () {
-              SocketHelper
-                  .sendMessage(MessageModel(orderType: MessageOrderType.stop), socketStatus.socketAddress);
+              SocketHelper.sendMessage(
+                  MessageModel(orderType: MessageOrderType.stop),
+                  socketStatus.socketAddress);
               Get.back(canPop: false);
             },
             child: Container(
@@ -101,5 +87,25 @@ class _RecordingPageState extends State<RecordingPage> {
         ),
       ),
     );
+  }
+
+  void handleMessage(MessageModel model) {
+    if (model.orderType == MessageOrderType.stop) {
+      fileManager.saveFileToDownloadsDirectory().then((value) {
+        if (value) {
+          Get.snackbar("Başarılı", "Kayıtlar indirildi");
+        } else {
+          Get.snackbar("Hata", "Kayıt izni bulunamadı");
+        }
+        Get.offAll(const DevicePage());
+      });
+    } else if (model.orderType == MessageOrderType.record) {
+      final record = model.record;
+      if (record != null) {
+        if (record.save) {
+          fileManager.saveRecord(record).then((value) {});
+        }
+      }
+    }
   }
 }
