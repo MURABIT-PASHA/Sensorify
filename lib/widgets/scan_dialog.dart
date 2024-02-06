@@ -3,8 +3,10 @@ import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:provider/provider.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:sensorify/helpers/socket_helper.dart';
+import 'package:sensorify/models/connection_settings_model.dart';
 import 'package:sensorify/models/message_model.dart';
 import 'package:sensorify/provider/socket_status_provider.dart';
 import 'package:sensorify/types.dart';
@@ -23,9 +25,8 @@ class _ScanDialogState extends State<ScanDialog> {
   final GlobalKey qrKey = GlobalKey(debugLabel: 'QR');
   Barcode? result;
   QRViewController? controller;
+  String? hostAddress;
 
-  // In order to get hot reload to work we need to pause the camera if the platform
-  // is android, or resume the camera if the platform is iOS.
   @override
   void reassemble() {
     super.reassemble();
@@ -36,8 +37,13 @@ class _ScanDialogState extends State<ScanDialog> {
     }
   }
 
+  Future setHostAddress() async {
+    hostAddress = await SocketHelper.getHostAddress();
+  }
+
   @override
   void initState() {
+    setHostAddress();
     super.initState();
   }
 
@@ -87,14 +93,29 @@ class _ScanDialogState extends State<ScanDialog> {
       setState(() {
         result = scanData;
         if (result != null) {
-          SocketStatusProvider socketStatusProvider = SocketStatusProvider();
-          SocketHelper.sendMessage(
-                  MessageModel(orderType: MessageOrderType.start),
-                  result!.code ?? "NULL")
-              .then((value) => socketStatusProvider
-                  .registerSocketAddress(result!.code ?? "NULL"),
-          );
-          Get.back();
+          final socketStatus =
+          Provider.of<SocketStatusProvider>(context, listen: false);
+          if (hostAddress != null) {
+            SocketHelper.sendMessage(
+              MessageModel(
+                orderType: MessageOrderType.connect,
+                connectionSettings: ConnectionSettings(
+                    hostAddress: hostAddress ?? "NULL",
+                    clientAddress: result!.code ?? "NULL",
+                    portNumber: 7800),
+              ),
+              result!.code ?? "NULL",
+            ).then((value) {
+              socketStatus
+                  .registerSocketAddress(result!.code ?? "NULL")
+                  .then((value) {
+                if (value) {
+                  socketStatus.updateConnectionStatus(true);
+                  Get.back();
+                }
+              });
+            });
+          }
         }
       });
     });

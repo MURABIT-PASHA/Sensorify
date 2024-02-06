@@ -8,7 +8,7 @@ import 'package:sensorify/helpers/socket_helper.dart';
 import 'package:sensorify/models/message_model.dart';
 import 'package:sensorify/provider/socket_status_provider.dart';
 
-import '../types.dart';
+import '../../../types.dart';
 
 class LiveDataPage extends StatefulWidget {
   const LiveDataPage({Key? key}) : super(key: key);
@@ -58,7 +58,7 @@ class _LiveDataPageState extends State<LiveDataPage> {
     _axisYStreamController.close();
     _axisZStreamController.close();
     SocketHelper
-        .sendMessage(MessageModel(orderType: MessageOrderType.stop), status.socketAddress);
+        .sendMessage(MessageModel(orderType: MessageOrderType.record), status.socketAddress);
     super.dispose();
   }
 

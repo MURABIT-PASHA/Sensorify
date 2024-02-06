@@ -5,11 +5,11 @@ import 'package:get/get.dart';
 import 'package:sensorify/constants.dart';
 import 'package:sensorify/helpers/sensor_helper.dart';
 import 'package:sensorify/models/message_model.dart';
-import 'package:sensorify/models/settings_model.dart';
+import 'package:sensorify/models/record_settings_model.dart';
 import 'package:sensorify/types.dart';
 
 class RecordingPage extends StatefulWidget {
-  final SettingsModel settings;
+  final RecordSettings settings;
   const RecordingPage({Key? key, required this.settings}) : super(key: key);
 
   @override

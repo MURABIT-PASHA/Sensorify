@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:sensorify/constants.dart';
-import 'package:sensorify/pages/live_data_page.dart';
+import 'package:sensorify/ui/pages/phone/live_data_page.dart';
 import 'package:sensorify/types.dart';
-import '../models/message_model.dart';
-import '../models/settings_model.dart';
+import '../../../models/message_model.dart';
+import '../../../models/record_settings_model.dart';
 
 class LiveDataSettingsPage extends StatefulWidget {
   const LiveDataSettingsPage({Key? key}) : super(key: key);

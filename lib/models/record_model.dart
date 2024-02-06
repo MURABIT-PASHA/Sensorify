@@ -1,4 +1,4 @@
-class RecordModel {
+class Record {
   final String initialName;
   final String sensorName;
   final double axisX;
@@ -7,7 +7,7 @@ class RecordModel {
   final int timestamp;
   bool save;
 
-  RecordModel({
+  Record({
     required this.initialName,
     required this.sensorName,
     required this.axisX,
@@ -29,8 +29,8 @@ class RecordModel {
     };
   }
 
-  factory RecordModel.fromJson(Map<String, dynamic> json) {
-    return RecordModel(
+  factory Record.fromJson(Map<String, dynamic> json) {
+    return Record(
       initialName: json["initialName"],
       sensorName: json["sensorName"],
       axisX: json["axisX"].toDouble(),

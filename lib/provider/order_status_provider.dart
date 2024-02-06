@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:sensorify/pages/device_page.dart';
+import 'package:sensorify/ui/pages/phone/device_page.dart';
 
 class OrderStatusProvider extends ChangeNotifier {
   Widget _currentPage = const DevicePage();

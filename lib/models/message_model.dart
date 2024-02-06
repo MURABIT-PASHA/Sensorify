@@ -1,18 +1,21 @@
+import 'package:sensorify/models/connection_settings_model.dart';
 import 'package:sensorify/models/record_model.dart';
-import 'package:sensorify/models/settings_model.dart';
+import 'package:sensorify/models/record_settings_model.dart';
 import 'package:sensorify/types.dart';
 
 class MessageModel{
     final MessageOrderType orderType;
-    final SettingsModel? settings;
-    final RecordModel? record;
+    final RecordSettings? recordSettings;
+    final Record? record;
+    final ConnectionSettings? connectionSettings;
 
-  MessageModel({required this.orderType, this.record, this.settings});
+  MessageModel({required this.orderType, this.record, this.recordSettings, this.connectionSettings});
     Map<String, dynamic> toJson() {
       return {
         'orderType': orderType.name,
-        'settings': settings?.toJson(),
+        'recordSettings': recordSettings?.toJson(),
         'record': record?.toJson(),
+        'connectionSettings': connectionSettings?.toJson(),
       };
     }
 
@@ -20,15 +23,19 @@ class MessageModel{
       final String orderTypeString = json['orderType'];
       final MessageOrderType orderType = MessageOrderType.values
           .firstWhere((type) => type.name.toString() == orderTypeString);
-      RecordModel? record;
-      SettingsModel? settings;
+      Record? record;
+      RecordSettings? recordSettings;
+      ConnectionSettings? connectionSettings;
       if (json['record'] != null) {
-        record = RecordModel.fromJson(json['record']);
+        record = Record.fromJson(json['record']);
       }
-      if (json['settings'] != null) {
-        settings = SettingsModel.fromJson(json['settings']);
+      if (json['recordSettings'] != null) {
+        recordSettings = RecordSettings.fromJson(json['settings']);
+      }
+      if(json['connectionSettings'] != null){
+        connectionSettings = ConnectionSettings.fromJson(json['connectionSettings']);
       }
 
-      return MessageModel(orderType: orderType, settings: settings, record: record);
+      return MessageModel(orderType: orderType, recordSettings: recordSettings, record: record, connectionSettings: connectionSettings);
     }
 }

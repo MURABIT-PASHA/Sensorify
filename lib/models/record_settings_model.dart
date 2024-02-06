@@ -1,11 +1,11 @@
 import "package:sensorify/types.dart";
 
-class SettingsModel {
+class RecordSettings {
   final int durationDelay;
   final DurationType durationType;
   final Map<SensorType, bool> selectedSensors;
 
-  SettingsModel(
+  RecordSettings(
       {required this.durationDelay,
       required this.durationType,
       required this.selectedSensors});
@@ -19,7 +19,7 @@ class SettingsModel {
     };
   }
 
-  factory SettingsModel.fromJson(Map<String, dynamic> json) {
+  factory RecordSettings.fromJson(Map<String, dynamic> json) {
     final int durationDelay = json["durationDelay"];
     final DurationType durationType = DurationType.values
         .firstWhere((type) => type.toString() == json["durationType"]);
@@ -33,7 +33,7 @@ class SettingsModel {
       ),
     );
 
-    return SettingsModel(
+    return RecordSettings(
       durationDelay: durationDelay,
       durationType: durationType,
       selectedSensors: selectedSensors,

@@ -35,7 +35,7 @@ class FileManager {
     }
   }
 
-  Future<bool> saveRecord(RecordModel record) async {
+  Future<bool> saveRecord(Record record) async {
     final String csvFile = "${record.initialName}.csv";
     String readerData = await readData(csvFile);
     if (readerData != "") {

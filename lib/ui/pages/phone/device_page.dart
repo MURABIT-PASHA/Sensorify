@@ -8,15 +8,14 @@ import 'package:sensorify/helpers/file_helper.dart';
 import 'package:sensorify/helpers/sensor_helper.dart';
 import 'package:sensorify/helpers/socket_helper.dart';
 import 'package:sensorify/models/message_model.dart';
-import 'package:sensorify/pages/credit_page.dart';
-import 'package:sensorify/pages/record_settings_page.dart';
-import 'package:sensorify/pages/recording_page.dart';
-import 'package:sensorify/pages/training_page.dart';
+import 'package:sensorify/ui/pages/phone/credit_page.dart';
+import 'package:sensorify/ui/pages/phone/record_settings_page.dart';
+import 'package:sensorify/ui/pages/phone/recording_page.dart';
+import 'package:sensorify/ui/pages/phone/training_page.dart';
 import 'package:sensorify/provider/socket_status_provider.dart';
 import 'package:sensorify/types.dart';
 import 'package:sensorify/widgets/content_box.dart';
 import 'package:sensorify/widgets/scan_dialog.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'live_data_settings_page.dart';
 
 class DevicePage extends StatefulWidget {
@@ -63,7 +62,7 @@ class _DevicePageState extends State<DevicePage> {
       MessageModel model = MessageModel.fromJson(json.decode(message));
       switch (model.orderType) {
         case MessageOrderType.start:
-          final settings = model.settings;
+          final settings = model.recordSettings;
           if (settings != null) {
             Get.to(() => RecordingPage(settings: settings));
           }
@@ -73,7 +72,7 @@ class _DevicePageState extends State<DevicePage> {
           fileManager.saveFileToDownloadsDirectory().then((value) {
             if (value) {
               Get.snackbar("Başarılı", "Kayıtlar indirildi");
-            }else{
+            } else {
               Get.snackbar("Hata", "Kayıt izni bulunamadı");
             }
           });
@@ -82,13 +81,12 @@ class _DevicePageState extends State<DevicePage> {
           final record = model.record;
           if (record != null) {
             if (record.save) {
-              fileManager.saveRecord(record).then((value) {
-              });
+              fileManager.saveRecord(record).then((value) {});
             }
           }
           break;
         case MessageOrderType.watch:
-          final settings = model.settings;
+          final settings = model.recordSettings;
           if (settings != null) {
             settings.selectedSensors.forEach((key, value) {
               if (value) {
@@ -102,6 +100,9 @@ class _DevicePageState extends State<DevicePage> {
               }
             });
           }
+          break;
+        case MessageOrderType.connect:
+          // TODO: Handle this case.
           break;
       }
     });
@@ -119,71 +120,74 @@ class _DevicePageState extends State<DevicePage> {
     final provider = Provider.of<SocketStatusProvider>(context, listen: true);
     double width = MediaQuery.of(context).size.width;
     double height = MediaQuery.of(context).size.height;
-    return Container(
-      width: width,
-      height: height,
-      alignment: Alignment.center,
-      child: CustomScrollView(
-        slivers: <Widget>[
-          SliverAppBar(
-            automaticallyImplyLeading: false,
-            floating: false,
-            snap: false,
-            pinned: true,
-            expandedHeight: 120,
-            collapsedHeight: 60,
-            title: const Text("Sensorify"),
-            actions: [
-              IconButton(
-                onPressed: () async {
-                  if (provider.isSocketRegistered == false) {
-                    Get.defaultDialog(
-                        title: 'Select your device',
+    return Scaffold(
+      body: Container(
+        width: width,
+        height: height,
+        alignment: Alignment.center,
+        child: CustomScrollView(
+          slivers: <Widget>[
+            SliverAppBar(
+              automaticallyImplyLeading: false,
+              floating: false,
+              snap: false,
+              pinned: true,
+              expandedHeight: 120,
+              collapsedHeight: 60,
+              title: const Text("Sensorify"),
+              actions: [
+                IconButton(
+                  onPressed: () async {
+                    if (provider.isSocketConnected) {
+                      await provider.registerSocketAddress("NULL");
+                      provider.updateConnectionStatus(false);
+                    } else {
+                      Get.defaultDialog(
+                        title: "Socket URL",
                         content: ScanDialog(
-                            height: height / 3 * 2, width: width - 100));
-                  } else {
-                    final prefs = await SharedPreferences.getInstance();
-                    if (prefs.getBool("isDeviceExist") ?? false) {
-                      final address =
-                          prefs.getString("deviceAddress") ?? "NULL";
-                      if (address != "NULL") {
-                      }
+                          width: MediaQuery.of(context).size.width - 100,
+                          height: MediaQuery.of(context).size.height * 2 / 3,
+                        ),
+                      );
                     }
-                  }
-                },
-                icon: Icon(
-                  Icons.watch,
-                  color: provider.isSocketConnected ? Colors.green : Colors.red,
+                  },
+                  icon: Icon(
+                    Icons.watch,
+                    color:
+                        provider.isSocketConnected ? Colors.green : Colors.red,
+                  ),
+                ),
+              ],
+              flexibleSpace: FlexibleSpaceBar(
+                background: Container(
+                  padding: const EdgeInsets.only(bottom: 20.0),
+                  height: 120,
+                  alignment: Alignment.bottomCenter,
+                  child: const Text("Burada saat durum bilgileri yazar"),
                 ),
               ),
-            ],
-            flexibleSpace: FlexibleSpaceBar(
-              background: Container(
-                padding: const EdgeInsets.only(bottom: 20.0),
-                height: 120,
-                alignment: Alignment.bottomCenter,
-                child: const Text("Burada saat durum bilgileri yazar"),
+            ),
+            SliverGrid(
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  childAspectRatio: .8,
+                  crossAxisSpacing: 10),
+              delegate: SliverChildBuilderDelegate(
+                (BuildContext context, int index) {
+                  return ContentBox(
+                    width: width / 2 - 10,
+                    name: gridChildList[index]["name"],
+                    icon: gridChildList[index]["icon"],
+                    onTap: () async {
+                      Get.to(gridChildList[index]["onTapPage"]);
+                    },
+                  );
+                },
+                childCount: gridChildList.length,
               ),
             ),
-          ),
-          SliverGrid(
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2, childAspectRatio: .8, crossAxisSpacing: 10),
-            delegate: SliverChildBuilderDelegate(
-              (BuildContext context, int index) {
-                return ContentBox(
-                  width: width / 2 - 10,
-                  name: gridChildList[index]["name"],
-                  icon: gridChildList[index]["icon"],
-                  onTap: () async {
-                    Get.to(gridChildList[index]["onTapPage"]);
-                  },
-                );
-              },
-              childCount: gridChildList.length,
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

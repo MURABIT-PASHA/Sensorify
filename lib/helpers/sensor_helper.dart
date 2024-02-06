@@ -78,7 +78,7 @@ class SensorManager {
         .listen((data) {
       final currentTime = DateTime.now().millisecondsSinceEpoch;
       if (data is AccelerometerEvent) {
-        final sensorData = RecordModel(
+        final sensorData = Record(
             initialName: "Accelerometer$initialTimestamp",
             sensorName: "Accelerometer",
             axisX: data.x,
@@ -89,7 +89,7 @@ class SensorManager {
         SocketHelper.sendMessage(MessageModel(
             orderType: MessageOrderType.record, record: sensorData), status.socketAddress);
       } else if (data is GyroscopeEvent) {
-        final sensorData = RecordModel(
+        final sensorData = Record(
             initialName: "Gyroscope$initialTimestamp",
             sensorName: "Gyroscope",
             axisX: data.x,
@@ -100,7 +100,7 @@ class SensorManager {
         SocketHelper.sendMessage(MessageModel(
             orderType: MessageOrderType.record, record: sensorData), status.socketAddress);
       } else {
-        final sensorData = RecordModel(
+        final sensorData = Record(
             initialName: "Magnetometer$initialTimestamp",
             sensorName: "Magnetometer",
             axisX: data.x,

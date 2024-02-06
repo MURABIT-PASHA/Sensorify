@@ -3,11 +3,9 @@ import 'package:flutter_svg/svg.dart';
 import 'package:get/get_rx/src/rx_types/rx_types.dart';
 import 'package:get/get_state_manager/src/rx_flutter/rx_obx_widget.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:sensorify/models/message_model.dart';
-import 'package:sensorify/models/settings_model.dart';
+import 'package:sensorify/models/record_settings_model.dart';
 import 'package:sensorify/types.dart';
-
-import '../widgets/frosted_glass_box.dart';
+import 'package:sensorify/widgets/frosted_glass_box.dart';
 
 class RecordSettingsPage extends StatefulWidget {
   const RecordSettingsPage({Key? key}) : super(key: key);
@@ -39,7 +37,7 @@ class _RecordSettingsPageState extends State<RecordSettingsPage> {
     super.initState();
   }
 
-  SettingsModel? checkParameters() {
+  RecordSettings? checkParameters() {
     if (_durationDelay != 0) {
       int falseCount = 0;
 
@@ -49,7 +47,7 @@ class _RecordSettingsPageState extends State<RecordSettingsPage> {
         }
       });
       if (falseCount < 3) {
-        final SettingsModel finalSettings = SettingsModel(
+        final RecordSettings finalSettings = RecordSettings(
             durationDelay: _durationDelay,
             durationType: _durationType.value,
             selectedSensors: selectedSensors);
