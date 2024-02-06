@@ -30,7 +30,7 @@ class MessageModel{
         record = Record.fromJson(json['record']);
       }
       if (json['recordSettings'] != null) {
-        recordSettings = RecordSettings.fromJson(json['settings']);
+        recordSettings = RecordSettings.fromJson(json['recordSettings']);
       }
       if(json['connectionSettings'] != null){
         connectionSettings = ConnectionSettings.fromJson(json['connectionSettings']);

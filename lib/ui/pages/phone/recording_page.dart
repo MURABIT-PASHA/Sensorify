@@ -2,11 +2,11 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:provider/provider.dart';
 import 'package:sensorify/constants.dart';
 import 'package:sensorify/helpers/sensor_helper.dart';
-import 'package:sensorify/models/message_model.dart';
 import 'package:sensorify/models/record_settings_model.dart';
-import 'package:sensorify/types.dart';
+import 'package:sensorify/provider/socket_status_provider.dart';
 
 class RecordingPage extends StatefulWidget {
   final RecordSettings settings;
@@ -24,6 +24,8 @@ class _RecordingPageState extends State<RecordingPage> {
 
   @override
   void initState() {
+    final socketStatus =
+    Provider.of<SocketStatusProvider>(context, listen: false);
     final int initialTimestamp = DateTime.now().millisecondsSinceEpoch;
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       _seconds.value++;
@@ -35,11 +37,13 @@ class _RecordingPageState extends State<RecordingPage> {
     });
     if (widget.settings.durationType.name == "ms") {
       sensorManager.sendData(
+        hostAddress: socketStatus.socketAddress,
           initialTimestamp: initialTimestamp,
           duration: Duration(milliseconds: widget.settings.durationDelay),
           streamData: streamData);
     } else {
       sensorManager.sendData(
+        hostAddress: socketStatus.socketAddress,
           initialTimestamp: initialTimestamp,
           duration: Duration(seconds: widget.settings.durationDelay),
           streamData: streamData);

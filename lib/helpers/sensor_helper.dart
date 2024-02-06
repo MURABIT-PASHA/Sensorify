@@ -10,14 +10,12 @@ import 'package:sensors_plus/sensors_plus.dart';
 
 class SensorManager {
 
-  SocketHelper _socket = SocketHelper();
   SensorManager._privateConstructor();
 
   static final SensorManager _instance = SensorManager._privateConstructor();
 
   static SensorManager get instance => _instance;
 
-  SocketStatusProvider status = SocketStatusProvider();
 
   StreamSubscription? _subscription;
 
@@ -68,7 +66,9 @@ class SensorManager {
   }
 
   void sendData(
-      {required int initialTimestamp,
+      {
+        required String hostAddress,
+        required int initialTimestamp,
       required Duration duration,
       required List<Stream> streamData,
       bool save = true}) {
@@ -87,7 +87,7 @@ class SensorManager {
             timestamp: currentTime,
             save: save);
         SocketHelper.sendMessage(MessageModel(
-            orderType: MessageOrderType.record, record: sensorData), status.socketAddress);
+            orderType: MessageOrderType.record, record: sensorData), hostAddress);
       } else if (data is GyroscopeEvent) {
         final sensorData = Record(
             initialName: "Gyroscope$initialTimestamp",
@@ -98,7 +98,7 @@ class SensorManager {
             timestamp: currentTime,
             save: save);
         SocketHelper.sendMessage(MessageModel(
-            orderType: MessageOrderType.record, record: sensorData), status.socketAddress);
+            orderType: MessageOrderType.record, record: sensorData), hostAddress);
       } else {
         final sensorData = Record(
             initialName: "Magnetometer$initialTimestamp",
@@ -109,7 +109,7 @@ class SensorManager {
             timestamp: currentTime,
             save: save);
         SocketHelper.sendMessage(MessageModel(
-            orderType: MessageOrderType.record, record: sensorData), status.socketAddress);
+            orderType: MessageOrderType.record, record: sensorData), hostAddress);
       }
     });
   }

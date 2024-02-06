@@ -21,21 +21,22 @@ class _LiveDataPageState extends State<LiveDataPage> {
   SocketHelper socket = SocketHelper();
   SocketStatusProvider status = SocketStatusProvider();
   Stream<dynamic> get messageStream => socket.getStream();
-  final StreamController<dynamic> _bluetoothStreamController =
+  final StreamController<dynamic> _socketStreamController =
       StreamController<dynamic>();
   final StreamController<double> _axisXStreamController = StreamController<double>();
   final StreamController<double> _axisYStreamController = StreamController<double>();
   final StreamController<double> _axisZStreamController = StreamController<double>();
   final double growth = 5;
 
-  void startBluetoothListening() {
+  void startListener() {
+    print("Listener");
     socket.getStream().listen((message) {
       MessageModel model = MessageModel.fromJson(json.decode(message));
       if (model.orderType == MessageOrderType.record) {
         final record = model.record;
         if (record != null) {
           if (!record.save) {
-            _bluetoothStreamController.sink.add(record);
+            _socketStreamController.sink.add(record);
             _axisXStreamController.sink.add(record.axisX * growth);
             _axisYStreamController.sink.add(record.axisY * growth);
             _axisZStreamController.sink.add(record.axisZ * growth);
@@ -47,18 +48,18 @@ class _LiveDataPageState extends State<LiveDataPage> {
 
   @override
   void initState() {
-    startBluetoothListening();
+    startListener();
     super.initState();
   }
 
   @override
   void dispose() {
-    _bluetoothStreamController.close();
+    _socketStreamController.close();
     _axisXStreamController.close();
     _axisYStreamController.close();
     _axisZStreamController.close();
     SocketHelper
-        .sendMessage(MessageModel(orderType: MessageOrderType.record), status.socketAddress);
+        .sendMessage(MessageModel(orderType: MessageOrderType.watch), status.socketAddress);
     super.dispose();
   }
 
@@ -82,7 +83,7 @@ class _LiveDataPageState extends State<LiveDataPage> {
               width: width -10,
               height: width -10,
               child: StreamBuilder<dynamic>(
-                stream: _bluetoothStreamController.stream,
+                stream: _socketStreamController.stream,
                 builder: (context, snapshot) {
                   if (snapshot.hasData) {
                     List<Color> graphColors = [

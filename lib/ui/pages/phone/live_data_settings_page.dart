@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:provider/provider.dart';
 import 'package:sensorify/constants.dart';
+import 'package:sensorify/helpers/socket_helper.dart';
+import 'package:sensorify/provider/socket_status_provider.dart';
 import 'package:sensorify/ui/pages/phone/live_data_page.dart';
 import 'package:sensorify/types.dart';
 import '../../../models/message_model.dart';
@@ -69,15 +72,22 @@ class _LiveDataSettingsPageState extends State<LiveDataSettingsPage> {
 
   VoidCallback onPressed(SensorType sensorType) {
     return () {
-      // bluetoothManager.sendMessage(
-      //   MessageModel(
-      //     orderType: MessageOrderType.watch,
-      //     settings: SettingsModel(
-      //         durationDelay: 500,
-      //         durationType: DurationType.ms,
-      //         selectedSensors: {sensorType: true}),
-      //   ),
-      // ).then((value) => Get.to(() => const LiveDataPage()));
+      final socketStatus =
+          Provider.of<SocketStatusProvider>(context, listen: false);
+      SocketHelper.sendMessage(
+              MessageModel(
+                orderType: MessageOrderType.watch,
+                recordSettings: RecordSettings(
+                    durationDelay: 500,
+                    durationType: DurationType.ms,
+                    selectedSensors: {sensorType: true}),
+              ),
+              socketStatus.socketAddress)
+          .then(
+        (value) => Get.to(
+          () => const LiveDataPage(),
+        ),
+      );
     };
   }
 }

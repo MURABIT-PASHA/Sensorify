@@ -58,54 +58,8 @@ class _DevicePageState extends State<DevicePage> {
 
   @override
   void initState() {
-    messageStream.listen((message) {
-      MessageModel model = MessageModel.fromJson(json.decode(message));
-      switch (model.orderType) {
-        case MessageOrderType.start:
-          final settings = model.recordSettings;
-          if (settings != null) {
-            Get.to(() => RecordingPage(settings: settings));
-          }
-          break;
-        case MessageOrderType.stop:
-          sensorManager.cancelSubscription();
-          fileManager.saveFileToDownloadsDirectory().then((value) {
-            if (value) {
-              Get.snackbar("Başarılı", "Kayıtlar indirildi");
-            } else {
-              Get.snackbar("Hata", "Kayıt izni bulunamadı");
-            }
-          });
-          break;
-        case MessageOrderType.record:
-          final record = model.record;
-          if (record != null) {
-            if (record.save) {
-              fileManager.saveRecord(record).then((value) {});
-            }
-          }
-          break;
-        case MessageOrderType.watch:
-          final settings = model.recordSettings;
-          if (settings != null) {
-            settings.selectedSensors.forEach((key, value) {
-              if (value) {
-                final streamData = sensorManager.getStreamData(key);
-                sensorManager.sendData(
-                  initialTimestamp: DateTime.now().millisecondsSinceEpoch,
-                  duration: const Duration(milliseconds: 500),
-                  streamData: [streamData],
-                  save: false,
-                );
-              }
-            });
-          }
-          break;
-        case MessageOrderType.connect:
-          // TODO: Handle this case.
-          break;
-      }
-    });
+
+    startListener();
     super.initState();
   }
 
@@ -190,5 +144,58 @@ class _DevicePageState extends State<DevicePage> {
         ),
       ),
     );
+  }
+  void startListener() {
+    final socketStatus =
+    Provider.of<SocketStatusProvider>(context, listen: false);
+    messageStream.listen((message) {
+      MessageModel model = MessageModel.fromJson(json.decode(message));
+      switch (model.orderType) {
+        case MessageOrderType.start:
+          final settings = model.recordSettings;
+          if (settings != null) {
+            Get.to(() => RecordingPage(settings: settings));
+          }
+          break;
+        case MessageOrderType.stop:
+          sensorManager.cancelSubscription();
+          fileManager.saveFileToDownloadsDirectory().then((value) {
+            if (value) {
+              Get.snackbar("Başarılı", "Kayıtlar indirildi");
+            } else {
+              Get.snackbar("Hata", "Kayıt izni bulunamadı");
+            }
+          });
+          break;
+        case MessageOrderType.record:
+          final record = model.record;
+          if (record != null) {
+            if (record.save) {
+              fileManager.saveRecord(record).then((value) {});
+            }
+          }
+          break;
+        case MessageOrderType.watch:
+          final settings = model.recordSettings;
+          if (settings != null) {
+            settings.selectedSensors.forEach((key, value) {
+              if (value) {
+                final streamData = sensorManager.getStreamData(key);
+                sensorManager.sendData(
+                  hostAddress: socketStatus.socketAddress,
+                  initialTimestamp: DateTime.now().millisecondsSinceEpoch,
+                  duration: const Duration(milliseconds: 500),
+                  streamData: [streamData],
+                  save: false,
+                );
+              }
+            });
+          }
+          break;
+        case MessageOrderType.connect:
+        // TODO: Handle this case.
+          break;
+      }
+    });
   }
 }

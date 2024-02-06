@@ -5,11 +5,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:lottie/lottie.dart';
+import 'package:provider/provider.dart';
 import 'package:sensorify/constants.dart';
 import 'package:sensorify/helpers/file_helper.dart';
 import 'package:sensorify/helpers/sensor_helper.dart';
 import 'package:sensorify/helpers/socket_helper.dart';
 import 'package:sensorify/models/message_model.dart';
+import 'package:sensorify/provider/socket_status_provider.dart';
 import 'package:sensorify/types.dart';
 import 'package:sensorify/ui/pages/phone/recording_page.dart';
 
@@ -35,8 +37,6 @@ class _ListenerPageState extends State<ListenerPage>
   @override
   void initState() {
     startAnimation();
-    startListener();
-
     super.initState();
   }
   @override
@@ -54,22 +54,81 @@ class _ListenerPageState extends State<ListenerPage>
         systemNavigationBarIconBrightness: Brightness.light,
       ),
       child: Scaffold(
-        body: AnimatedBuilder(
-          animation: _controller,
-          builder: (BuildContext context, Widget? child) {
-            return Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [secondaryForegroundColor, warningColor],
-                  begin: _topAlignmentAnimation.value,
-                  end: _bottomAlignmentAnimation.value,
-                ),
-              ),
-              child: Center(
-                child: Lottie.asset('assets/lotties/sensorify.json')
-              ),
+        body: Builder(
+          builder: (context) {
+            final socketStatus =
+            Provider.of<SocketStatusProvider>(context, listen: false);
+            messageStream.listen((message) {
+              MessageModel model = MessageModel.fromJson(json.decode(message));
+              switch (model.orderType) {
+                case MessageOrderType.start:
+                  final settings = model.recordSettings;
+                  if (settings != null) {
+                    Get.to(() => RecordingPage(settings: settings));
+                  }
+                  break;
+                case MessageOrderType.stop:
+                  sensorManager.cancelSubscription();
+                  fileManager.saveFileToDownloadsDirectory().then((value) {
+                    if (value) {
+                      Get.snackbar("Başarılı", "Kayıtlar indirildi");
+                    } else {
+                      Get.snackbar("Hata", "Kayıt izni bulunamadı");
+                    }
+                  });
+                  break;
+                case MessageOrderType.record:
+                  final record = model.record;
+                  if (record != null) {
+                    if (record.save) {
+                      fileManager.saveRecord(record).then((value) {});
+                    }
+                  }
+                  break;
+                case MessageOrderType.watch:
+                  final settings = model.recordSettings;
+                  if (settings != null) {
+                    settings.selectedSensors.forEach((key, value) {
+                      if (value) {
+                        final streamData = sensorManager.getStreamData(key);
+                        sensorManager.sendData(
+                          hostAddress: socketStatus.socketAddress,
+                          initialTimestamp: DateTime.now().millisecondsSinceEpoch,
+                          duration: const Duration(milliseconds: 500),
+                          streamData: [streamData],
+                          save: false,
+                        );
+                      }
+                    });
+                  }
+                  else{
+                    sensorManager.cancelSubscription();
+                    break;
+                  }
+                  break;
+                case MessageOrderType.connect:
+                // TODO: Handle this case.
+                  break;
+              }
+            });
+            return AnimatedBuilder(
+              animation: _controller,
+              builder: (BuildContext context, Widget? child) {
+                return Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [secondaryForegroundColor, warningColor],
+                      begin: _topAlignmentAnimation.value,
+                      end: _bottomAlignmentAnimation.value,
+                    ),
+                  ),
+                  child: Center(
+                    child: Lottie.asset('assets/lotties/sensorify.json')
+                  ),
+                );
+              },
             );
-          },
+          }
         ),
       ),
     );
@@ -120,56 +179,5 @@ class _ListenerPageState extends State<ListenerPage>
     ).animate(_controller);
 
     _controller.repeat();
-  }
-
-  void startListener() {
-    messageStream.listen((message) {
-      MessageModel model = MessageModel.fromJson(json.decode(message));
-      switch (model.orderType) {
-        case MessageOrderType.start:
-          final settings = model.recordSettings;
-          if (settings != null) {
-            Get.to(() => RecordingPage(settings: settings));
-          }
-          break;
-        case MessageOrderType.stop:
-          sensorManager.cancelSubscription();
-          fileManager.saveFileToDownloadsDirectory().then((value) {
-            if (value) {
-              Get.snackbar("Başarılı", "Kayıtlar indirildi");
-            } else {
-              Get.snackbar("Hata", "Kayıt izni bulunamadı");
-            }
-          });
-          break;
-        case MessageOrderType.record:
-          final record = model.record;
-          if (record != null) {
-            if (record.save) {
-              fileManager.saveRecord(record).then((value) {});
-            }
-          }
-          break;
-        case MessageOrderType.watch:
-          final settings = model.recordSettings;
-          if (settings != null) {
-            settings.selectedSensors.forEach((key, value) {
-              if (value) {
-                final streamData = sensorManager.getStreamData(key);
-                sensorManager.sendData(
-                  initialTimestamp: DateTime.now().millisecondsSinceEpoch,
-                  duration: const Duration(milliseconds: 500),
-                  streamData: [streamData],
-                  save: false,
-                );
-              }
-            });
-          }
-          break;
-        case MessageOrderType.connect:
-        // TODO: Handle this case.
-          break;
-      }
-    });
   }
 }
